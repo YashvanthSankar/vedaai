@@ -87,9 +87,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden lg:flex gap-5 p-5 min-h-screen">
         {/* Sidebar — floating white card pinned to full viewport height. Radius matches Figma 24px. */}
         <aside className="w-[290px] shrink-0 sticky top-5 h-[calc(100vh-40px)] floating-card rounded-[24px] flex flex-col overflow-hidden">
-          <div className="px-6 pt-7 pb-5 flex items-center gap-3">
-            <Logo size={40} />
-            <Wordmark className="text-[24px]" />
+          {/* Logo + Wordmark: optically centered horizontally as a pair.
+              Bricolage caps sit above visual midline, so we use items-center + leading-none
+              and let the cap-height align with the tile's vertical center. */}
+          <div className="px-6 pt-7 pb-6">
+            <div className="flex items-center gap-[10px] h-[42px]">
+              <Logo size={42} />
+              <Wordmark className="text-[28px] -mt-[2px]" />
+            </div>
           </div>
 
           {/* Dynamic CTA — pixel-perfect to Figma:
@@ -97,7 +102,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="px-5 pb-2">
             <Link
               href={cta.href}
-              className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-full bg-ink-900 text-white text-[16px] font-semibold ring-2 ring-brand-500 ring-offset-[3px] ring-offset-white hover:bg-ink-800 active:scale-[0.99] transition-all"
+              className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-full bg-ink-900 text-white text-[16px] font-semibold ring-2 ring-brand-500 ring-offset-[3px] ring-offset-white hover:bg-ink-800 active:scale-[0.99] transition-all btn-shadow-dark"
               aria-label={cta.label}
             >
               <SparklesFilled size={18} className="text-white" />
@@ -105,8 +110,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          {/* Main nav — sits in the top half of the sidebar */}
-          <nav className="px-3 mt-7 flex flex-col gap-1">
+          {/* Main nav — bolder Bricolage 600/700 for stronger Figma match */}
+          <nav className="px-3 mt-8 flex flex-col gap-1">
             {NAV.map((item) => {
               const Icon = item.icon;
               const active =
@@ -119,19 +124,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] font-medium transition-colors',
+                    'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] transition-colors',
                     active
-                      ? 'bg-ink-100 text-ink-950'
-                      : 'text-ink-500 hover:bg-ink-50'
+                      ? 'bg-ink-100 text-ink-950 font-bold'
+                      : 'text-ink-500 hover:bg-ink-50 font-semibold'
                   )}
                 >
                   <Icon
                     className={cn('w-[20px] h-[20px] shrink-0', active ? 'text-ink-950' : 'text-ink-400')}
-                    strokeWidth={1.6}
+                    strokeWidth={active ? 2 : 1.6}
                   />
                   <span className="flex-1">{item.label}</span>
                   {count !== undefined && count > 0 ? (
-                    <span className="px-2 py-0.5 rounded-full bg-brand-500 text-white text-xs font-bold leading-none min-w-[24px] text-center">
+                    <span className="px-2 py-0.5 rounded-full bg-brand-500 text-white text-[11px] font-bold leading-none min-w-[26px] text-center">
                       {count}
                     </span>
                   ) : null}
@@ -148,10 +153,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/settings"
               className={cn(
-                'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] font-medium transition-colors',
+                'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] transition-colors',
                 pathname.startsWith('/settings')
-                  ? 'bg-ink-100 text-ink-950'
-                  : 'text-ink-500 hover:bg-ink-50'
+                  ? 'bg-ink-100 text-ink-950 font-bold'
+                  : 'text-ink-500 hover:bg-ink-50 font-semibold'
               )}
             >
               <SettingsIcon className="w-[20px] h-[20px] text-ink-400" strokeWidth={1.6} />

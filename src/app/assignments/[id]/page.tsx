@@ -197,7 +197,7 @@ function ResultView({
             href={pdfUrl(assignment._id)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-white text-ink-950 text-[15px] font-semibold hover:bg-ink-50 active:scale-[0.99] transition-all"
+            className="inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-white text-ink-950 text-[15px] font-semibold btn-shadow-light hover:bg-ink-50 active:scale-[0.99] transition-all"
           >
             <FileDown className="w-[18px] h-[18px]" strokeWidth={1.8} />
             Download as PDF

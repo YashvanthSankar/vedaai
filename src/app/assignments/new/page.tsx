@@ -143,7 +143,7 @@ export default function NewAssignmentPage() {
         <button
           onClick={() => (step === 2 ? setStep(1) : router.back())}
           disabled={submitting}
-          className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-white border border-ink-200 text-ink-950 text-[16px] font-semibold hover:bg-ink-50 active:scale-[0.99] transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-white border border-ink-200 text-ink-950 text-[16px] font-semibold btn-shadow-light hover:bg-ink-50 active:scale-[0.99] transition-all disabled:opacity-50"
         >
           <ArrowLeft className="w-[20px] h-[20px]" strokeWidth={2.2} />
           Previous
@@ -151,7 +151,7 @@ export default function NewAssignmentPage() {
         {step === 1 ? (
           <button
             onClick={next}
-            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold hover:bg-ink-800 active:scale-[0.99] transition-all"
+            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
           >
             Next
             <ArrowRight className="w-[20px] h-[20px]" strokeWidth={2.2} />
@@ -160,7 +160,7 @@ export default function NewAssignmentPage() {
           <button
             onClick={generate}
             disabled={submitting}
-            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold hover:bg-ink-800 active:scale-[0.99] transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all disabled:opacity-50"
           >
             {submitting ? (
               <>
@@ -318,7 +318,7 @@ function Step1Card({
                 e.stopPropagation();
                 fileInput.current?.click();
               }}
-              className="mt-5 inline-flex items-center justify-center h-12 px-7 rounded-full bg-white border border-ink-200 text-ink-900 text-[15px] font-semibold hover:bg-ink-50 active:scale-[0.99] transition-all"
+              className="mt-5 inline-flex items-center justify-center h-12 px-7 rounded-full bg-white border border-ink-200 text-ink-900 text-[15px] font-semibold btn-shadow-light hover:bg-ink-50 active:scale-[0.99] transition-all"
             >
               Browse Files
             </button>

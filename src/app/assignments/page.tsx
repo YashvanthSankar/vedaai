@@ -131,7 +131,7 @@ export default function AssignmentsPage() {
               <div className="fixed bottom-8 left-0 right-0 lg:left-[310px] flex justify-center pointer-events-none z-30">
                 <Link
                   href="/assignments/new"
-                  className="pointer-events-auto inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold shadow-floating hover:bg-ink-800 active:scale-[0.99] transition-all"
+                  className="pointer-events-auto inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
                 >
                   <Plus className="w-[20px] h-[20px]" strokeWidth={2.4} />
                   Create Assignment
@@ -239,7 +239,7 @@ function EmptyState() {
       </p>
       <Link
         href="/assignments/new"
-        className="mt-7 inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold shadow-floating hover:bg-ink-800 active:scale-[0.99] transition-all"
+        className="mt-7 inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
       >
         <Plus className="w-[20px] h-[20px]" strokeWidth={2.4} />
         Create Your First Assignment

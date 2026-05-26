@@ -37,8 +37,10 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        'font-bold tracking-tight text-ink-950 leading-none align-middle',
-        className?.includes('text-') ? '' : 'text-[22px]',
+        'tracking-tight text-ink-950 leading-none align-middle',
+        // Bricolage Grotesque ExtraBold 800 matches the Figma weight
+        'font-extrabold',
+        className?.includes('text-') ? '' : 'text-[24px]',
         className
       )}
     >
