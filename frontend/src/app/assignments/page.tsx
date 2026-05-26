@@ -127,8 +127,10 @@ export default function AssignmentsPage() {
                 ))}
               </div>
 
-              {/* Floating Create Assignment pill — desktop only; mobile uses the round FAB on the bottom bar */}
-              <div className="hidden lg:flex fixed bottom-8 left-[310px] right-0 justify-center pointer-events-none z-30">
+              {/* Floating Create Assignment pill — sticky to bottom of viewport, centered
+                  within the content area via flexbox (not fixed). Content area is the parent
+                  div which already has the correct width thanks to pl-[330px] in AppShell. */}
+              <div className="hidden lg:flex sticky bottom-8 justify-center w-full z-30 pointer-events-none -mt-16">
                 <Link
                   href="/assignments/new"
                   className="pointer-events-auto inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-stroke-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
@@ -266,7 +268,7 @@ function AssignmentCard({
       className="block bg-white rounded-2xl shadow-card p-5 lg:p-8 min-h-[160px] lg:min-h-[200px] relative hover:shadow-floating transition-shadow"
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-[19px] lg:text-[26px] font-black text-ink-950 leading-tight underline decoration-[2px] underline-offset-[5px] decoration-ink-950 truncate max-w-[calc(100%-2rem)]">
+        <h3 className="text-[19px] lg:text-[26px] font-black text-ink-950 leading-tight underline decoration-[1.5px] underline-offset-[7px] decoration-ink-300 truncate max-w-[calc(100%-2rem)]">
           {a.title}
         </h3>
         <div className="relative" ref={menuRef}>
