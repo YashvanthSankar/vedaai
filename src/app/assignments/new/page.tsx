@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState, useRef, useCallback } from 'react';
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,6 +23,7 @@ import {
   type QuestionType,
 } from '@/lib/types';
 import { createAssignment } from '@/lib/api';
+import { useProfile } from '@/lib/profile';
 import { cn } from '@/lib/cn';
 
 type Step = 1 | 2;
@@ -30,9 +31,26 @@ type Step = 1 | 2;
 export default function NewAssignmentPage() {
   const router = useRouter();
   const draft = useDraft();
+  const profile = useProfile();
   const [step, setStep] = useState<Step>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Seed draft with profile defaults on first load (only fill empty fields)
+  useEffect(() => {
+    if (!profile) return;
+    const patch: Partial<{ schoolName: string; teacherName: string; subject: string; gradeLevel: string }> = {};
+    if (!draft.schoolName) patch.schoolName = profile.schoolName;
+    if (!draft.teacherName) patch.teacherName = profile.teacherName;
+    if (!draft.subject && profile.defaultSubject) patch.subject = profile.defaultSubject;
+    if (!draft.gradeLevel && profile.defaultGradeLevel) patch.gradeLevel = profile.defaultGradeLevel;
+    if (Object.keys(patch).length > 0) {
+      for (const [k, v] of Object.entries(patch)) {
+        draft.setField(k as 'schoolName', v as string);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
 
   const { totalQuestions, totalMarks } = useMemo(() => {
     let q = 0, m = 0;
@@ -120,39 +138,39 @@ export default function NewAssignmentPage() {
         <Step2Card totalQuestions={totalQuestions} totalMarks={totalMarks} />
       )}
 
-      {/* Footer */}
+      {/* Footer — h-14, 16px semibold, full pill, exact spacing */}
       <div className="flex items-center justify-between mt-8 pb-12">
         <button
           onClick={() => (step === 2 ? setStep(1) : router.back())}
           disabled={submitting}
-          className="inline-flex items-center gap-2 h-12 px-7 rounded-full bg-white border border-ink-200 text-ink-950 text-[15px] font-medium hover:bg-ink-50 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-white border border-ink-200 text-ink-950 text-[16px] font-semibold hover:bg-ink-50 active:scale-[0.99] transition-all disabled:opacity-50"
         >
-          <ArrowLeft className="w-[18px] h-[18px]" strokeWidth={2} />
+          <ArrowLeft className="w-[20px] h-[20px]" strokeWidth={2.2} />
           Previous
         </button>
         {step === 1 ? (
           <button
             onClick={next}
-            className="inline-flex items-center gap-2 h-12 px-7 rounded-full bg-ink-950 text-white text-[15px] font-medium hover:bg-ink-900 transition-colors"
+            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold hover:bg-ink-800 active:scale-[0.99] transition-all"
           >
             Next
-            <ArrowRight className="w-[18px] h-[18px]" strokeWidth={2} />
+            <ArrowRight className="w-[20px] h-[20px]" strokeWidth={2.2} />
           </button>
         ) : (
           <button
             onClick={generate}
             disabled={submitting}
-            className="inline-flex items-center gap-2 h-12 px-7 rounded-full bg-ink-950 text-white text-[15px] font-medium hover:bg-ink-900 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold hover:bg-ink-800 active:scale-[0.99] transition-all disabled:opacity-50"
           >
             {submitting ? (
               <>
-                <Loader2 className="w-[18px] h-[18px] animate-spin" />
+                <Loader2 className="w-[20px] h-[20px] animate-spin" />
                 Generating…
               </>
             ) : (
               <>
                 Generate
-                <ArrowRight className="w-[18px] h-[18px]" strokeWidth={2} />
+                <ArrowRight className="w-[20px] h-[20px]" strokeWidth={2.2} />
               </>
             )}
           </button>
@@ -300,7 +318,7 @@ function Step1Card({
                 e.stopPropagation();
                 fileInput.current?.click();
               }}
-              className="mt-5 inline-flex items-center justify-center h-11 px-7 rounded-full bg-white border border-ink-200 text-ink-900 text-[15px] font-medium hover:bg-ink-50 transition-colors"
+              className="mt-5 inline-flex items-center justify-center h-12 px-7 rounded-full bg-white border border-ink-200 text-ink-900 text-[15px] font-semibold hover:bg-ink-50 active:scale-[0.99] transition-all"
             >
               Browse Files
             </button>

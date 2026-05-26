@@ -127,13 +127,13 @@ export default function AssignmentsPage() {
                 ))}
               </div>
 
-              {/* Floating Create Assignment pill */}
+              {/* Floating Create Assignment pill — h-14 (56px), text 16 semibold, full pill */}
               <div className="fixed bottom-8 left-0 right-0 lg:left-[310px] flex justify-center pointer-events-none z-30">
                 <Link
                   href="/assignments/new"
-                  className="pointer-events-auto inline-flex items-center gap-2 h-14 px-7 rounded-full bg-ink-950 text-white text-[15px] font-medium shadow-floating hover:bg-ink-900 transition-colors"
+                  className="pointer-events-auto inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold shadow-floating hover:bg-ink-800 active:scale-[0.99] transition-all"
                 >
-                  <Plus className="w-[18px] h-[18px]" strokeWidth={2.2} />
+                  <Plus className="w-[20px] h-[20px]" strokeWidth={2.4} />
                   Create Assignment
                 </Link>
               </div>
@@ -239,9 +239,9 @@ function EmptyState() {
       </p>
       <Link
         href="/assignments/new"
-        className="mt-7 inline-flex items-center gap-2 h-14 px-7 rounded-full bg-ink-950 text-white text-[15px] font-medium shadow-floating hover:bg-ink-900 transition-colors"
+        className="mt-7 inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold shadow-floating hover:bg-ink-800 active:scale-[0.99] transition-all"
       >
-        <Plus className="w-[18px] h-[18px]" strokeWidth={2.2} />
+        <Plus className="w-[20px] h-[20px]" strokeWidth={2.4} />
         Create Your First Assignment
       </Link>
     </div>

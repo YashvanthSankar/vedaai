@@ -34,8 +34,9 @@ const initial = {
   dueDate: '',
   questionTypes: DEFAULT_ROWS,
   additionalInstructions: '',
-  schoolName: 'Delhi Public School, Sector-4, Bokaro',
-  teacherName: 'Lakshya',
+  // school + teacher are seeded from the live profile when the Create form mounts.
+  schoolName: '',
+  teacherName: '',
   file: null as File | null,
 };
 

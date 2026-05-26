@@ -5,6 +5,7 @@ import {
   type GeneratedPaper,
   type GeneratedSection,
 } from '@/lib/types';
+import { useProfile } from '@/lib/profile';
 
 export function PaperView({
   paper,
@@ -13,15 +14,17 @@ export function PaperView({
   paper: GeneratedPaper;
   schoolName?: string;
 }) {
+  const profile = useProfile();
   const hasAnswers = paper.sections.some((s) =>
     s.questions.some((q) => q.answer && q.answer.trim().length > 0)
   );
+  const headerSchool = schoolName ?? profile?.schoolName ?? 'Your School';
   return (
     <div className="paper-page rounded-3xl bg-paper px-10 sm:px-14 lg:px-20 py-12 lg:py-16 font-serif text-ink-950">
       {/* School + subject header — centered, serif, bold */}
       <div className="text-center">
         <h1 className="font-bold text-[28px] lg:text-[32px] tracking-tight leading-tight">
-          {schoolName ?? 'Delhi Public School, Sector-4, Bokaro'}
+          {headerSchool}
         </h1>
         {paper.subject && (
           <div className="mt-2 text-[18px] lg:text-[20px] font-bold">

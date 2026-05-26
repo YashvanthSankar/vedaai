@@ -187,9 +187,9 @@ function ResultView({
 
   return (
     <div className="w-full max-w-[1080px] mx-auto pb-16">
-      {/* Dark AI message card with Download as PDF */}
-      <div className="rounded-3xl bg-ink-700 px-8 py-8 lg:px-10 lg:py-10 mb-6 text-white">
-        <p className="text-[18px] lg:text-[20px] font-bold leading-relaxed">
+      {/* Dark AI message card with Download as PDF — 24px radius (matches Figma) */}
+      <div className="rounded-[24px] bg-ink-700 px-8 py-8 lg:px-10 lg:py-10 mb-6 text-white">
+        <p className="text-[18px] lg:text-[22px] font-bold leading-relaxed">
           {intro}
         </p>
         <div className="mt-6 flex items-center gap-3 flex-wrap">
@@ -197,7 +197,7 @@ function ResultView({
             href={pdfUrl(assignment._id)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-white text-ink-950 text-[15px] font-medium hover:bg-ink-50 transition-colors"
+            className="inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-white text-ink-950 text-[15px] font-semibold hover:bg-ink-50 active:scale-[0.99] transition-all"
           >
             <FileDown className="w-[18px] h-[18px]" strokeWidth={1.8} />
             Download as PDF
@@ -205,7 +205,7 @@ function ResultView({
           <button
             onClick={handleRegen}
             disabled={regenerating}
-            className="inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-ink-900 text-white text-[15px] font-medium border border-white/10 hover:bg-ink-800 transition-colors disabled:opacity-60"
+            className="inline-flex items-center gap-2.5 h-12 px-6 rounded-full bg-ink-900 text-white text-[15px] font-semibold border border-white/10 hover:bg-ink-800 active:scale-[0.99] transition-all disabled:opacity-60"
           >
             {regenerating ? (
               <Loader2 className="w-[18px] h-[18px] animate-spin" />

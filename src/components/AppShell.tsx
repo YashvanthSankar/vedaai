@@ -18,6 +18,7 @@ import { cn } from '@/lib/cn';
 import { Logo, Wordmark, SparklesFilled } from '@/components/Brand';
 import { PortraitAvatar } from '@/components/Avatars';
 import { api } from '@/lib/api';
+import { useProfile } from '@/lib/profile';
 
 type NavItem = {
   href: string;
@@ -65,6 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '/';
   const router = useRouter();
   const { cta, breadcrumb } = deriveShellState(pathname);
+  const profile = useProfile();
 
   const [counts, setCounts] = useState<{ assignments?: number; library?: number }>({});
 
@@ -83,21 +85,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-canvas">
       {/* Desktop layout: gutter padding around the floating sidebar + main column */}
       <div className="hidden lg:flex gap-5 p-5 min-h-screen">
-        {/* Sidebar — floating white card pinned to full viewport height */}
-        <aside className="w-[290px] shrink-0 sticky top-5 h-[calc(100vh-40px)] floating-card rounded-3xl flex flex-col overflow-hidden">
-          <div className="px-6 pt-7 pb-5 flex items-center gap-2.5">
-            <Logo size={36} />
-            <Wordmark className="text-[20px]" />
+        {/* Sidebar — floating white card pinned to full viewport height. Radius matches Figma 24px. */}
+        <aside className="w-[290px] shrink-0 sticky top-5 h-[calc(100vh-40px)] floating-card rounded-[24px] flex flex-col overflow-hidden">
+          <div className="px-6 pt-7 pb-5 flex items-center gap-3">
+            <Logo size={40} />
+            <Wordmark className="text-[24px]" />
           </div>
 
-          {/* Dynamic CTA — dark pill with 2px orange outline ring + ~3px gap */}
+          {/* Dynamic CTA — pixel-perfect to Figma:
+              dark pill (52px tall) + 2px brand-500 outline ring + 3px white gap between ring and pill */}
           <div className="px-5 pb-2">
             <Link
               href={cta.href}
-              className="flex items-center justify-center gap-2 w-full h-[50px] rounded-full bg-ink-950 text-white text-[15px] font-medium ring-2 ring-brand-500 ring-offset-[3px] ring-offset-white hover:bg-ink-900 transition-colors"
+              className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-full bg-ink-900 text-white text-[16px] font-semibold ring-2 ring-brand-500 ring-offset-[3px] ring-offset-white hover:bg-ink-800 active:scale-[0.99] transition-all"
               aria-label={cta.label}
             >
-              <SparklesFilled size={16} className="text-white" />
+              <SparklesFilled size={18} className="text-white" />
               {cta.label}
             </Link>
           </div>
@@ -156,13 +159,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
 
-          {/* School card */}
+          {/* School card — live from profile */}
           <div className="px-4 pb-5">
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-ink-50">
               <PortraitAvatar size={48} />
-              <div className="leading-tight">
-                <div className="text-[15px] font-bold text-ink-950">Delhi Public School</div>
-                <div className="text-[13px] text-ink-500 mt-0.5">Bokaro Steel City</div>
+              <div className="leading-tight min-w-0">
+                <div className="text-[15px] font-bold text-ink-950 truncate">
+                  {shortSchoolName(profile?.schoolName) ?? 'Delhi Public School'}
+                </div>
+                <div className="text-[13px] text-ink-500 mt-0.5 truncate">
+                  {profile?.schoolLocation ?? 'Bokaro Steel City'}
+                </div>
               </div>
             </div>
           </div>
@@ -197,7 +204,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             <button className="flex items-center gap-2.5 pl-2 pr-3 h-12 rounded-full bg-white border border-ink-100 shadow-card hover:bg-ink-50 transition-colors">
               <PortraitAvatar size={36} />
-              <span className="text-[15px] font-semibold text-ink-950">John Doe</span>
+              <span className="text-[15px] font-semibold text-ink-950 max-w-[140px] truncate">
+                {profile?.teacherName ?? 'John Doe'}
+              </span>
               <ChevronDown className="w-4 h-4 text-ink-400" strokeWidth={2} />
             </button>
           </header>
@@ -227,61 +236,76 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function MobileTabBar({ pathname }: { pathname: string }) {
-  // Floating dark pill matching Figma exactly:
-  // — Wide pill with substantial vertical padding
-  // — Each item: large icon + label below
-  // — Active: icon gets a subtle lighter circular highlight, label below in bold white
-  // — Inactive: icon in muted white, label in muted white
-  // — Subtle top inner highlight on the pill itself
-  const items = [
-    { href: '/home', label: 'Home', icon: LayoutGrid },
-    { href: '/assignments', label: 'Assignments', icon: FileText },
-    { href: '/library', label: 'Library', icon: PieChart },
-    { href: '/toolkit', label: 'Toolkit', icon: BookOpen },
+  // Pixel-perfect Figma mobile bar:
+  // — Wide dark pill with subtle top highlight gradient
+  // — Active: icon is FILLED (not outline) + larger + bold label
+  // — Inactive: icon outline, muted text
+  // — Floating "+" FAB to the right, partially overlapping the bar
+  const items: { href: string; label: string; outline: typeof LayoutGrid; filled: typeof LayoutGrid }[] = [
+    { href: '/home', label: 'Home', outline: LayoutGrid, filled: LayoutGrid },
+    { href: '/assignments', label: 'Assignments', outline: FileText, filled: FileText },
+    { href: '/library', label: 'Library', outline: PieChart, filled: PieChart },
+    { href: '/toolkit', label: 'AI Toolkit', outline: BookOpen, filled: BookOpen },
   ];
   return (
-    <nav
-      className="fixed bottom-5 left-4 right-4 z-40 mx-auto max-w-[460px] bg-ink-900 rounded-[34px] px-5 py-5 flex items-center justify-around shadow-floating"
-      style={{
-        backgroundImage:
-          'linear-gradient(to bottom, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 30%)',
-      }}
-    >
-      {items.map((item) => {
-        const Icon = item.icon;
-        const active =
-          item.href === '/home'
-            ? pathname === '/home' || pathname === '/'
-            : pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex flex-col items-center justify-center gap-1.5 min-w-[64px]',
-              active ? 'text-white' : 'text-white/60 hover:text-white/85'
-            )}
-            aria-label={item.label}
-          >
-            <span
+    <>
+      <nav
+        className="fixed bottom-5 left-4 right-20 z-40 bg-ink-900 rounded-[36px] px-3 py-3 flex items-center justify-around shadow-floating"
+        style={{
+          backgroundImage:
+            'linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 28%)',
+        }}
+      >
+        {items.map((item) => {
+          const Icon = item.outline;
+          const active =
+            item.href === '/home'
+              ? pathname === '/home' || pathname === '/'
+              : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
               className={cn(
-                'w-12 h-12 flex items-center justify-center rounded-2xl transition-colors',
-                active && 'bg-white/10'
+                'flex flex-col items-center justify-center gap-1 px-2 py-1 min-w-[64px]',
+                active ? 'text-white' : 'text-white/55 hover:text-white/85'
               )}
+              aria-label={item.label}
             >
-              <Icon className="w-[26px] h-[26px]" strokeWidth={1.8} />
-            </span>
-            <span
-              className={cn(
-                'text-[12px] leading-none whitespace-nowrap',
-                active ? 'font-bold' : 'font-medium'
-              )}
-            >
-              {item.label}
-            </span>
-          </Link>
-        );
-      })}
-    </nav>
+              <Icon
+                className={cn(active ? 'w-[30px] h-[30px]' : 'w-[24px] h-[24px]')}
+                strokeWidth={active ? 2.4 : 1.8}
+                fill={active ? 'currentColor' : 'none'}
+              />
+              <span
+                className={cn(
+                  'leading-none whitespace-nowrap',
+                  active ? 'text-[13px] font-bold' : 'text-[12px] font-medium'
+                )}
+              >
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+      {/* Floating "+" FAB — mobile equivalent of Create Assignment */}
+      <Link
+        href="/assignments/new"
+        className="fixed bottom-5 right-4 z-50 w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-floating active:scale-95 transition-transform"
+        aria-label="Create Assignment"
+      >
+        <span className="text-brand-500 text-3xl leading-none font-light">+</span>
+      </Link>
+    </>
   );
+}
+
+/**
+ * Trims "Delhi Public School, Sector-4, Bokaro" → "Delhi Public School"
+ * so the school name fits inside the sidebar card without truncation.
+ */
+function shortSchoolName(full?: string): string | undefined {
+  if (!full) return undefined;
+  return full.split(',')[0].trim();
 }

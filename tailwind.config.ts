@@ -49,7 +49,7 @@ const config: Config = {
         popover: '0 8px 30px rgba(20,20,30,0.12), 0 2px 8px rgba(20,20,30,0.05)',
       },
       fontFamily: {
-        sans: ['Satoshi', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Bricolage Grotesque', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
         serif: ['Georgia', 'ui-serif', 'serif'],
       },
       borderRadius: {
