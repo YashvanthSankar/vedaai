@@ -6,6 +6,8 @@ import { cn } from '@/lib/cn';
  * The asset is a vertical orange→deep-red gradient square with a white serif V.
  */
 export function Logo({ size = 40, className }: { size?: number; className?: string }) {
+  // Use the user-provided AVIF asset directly. Plain black tile with white V mark.
+  // No gradient, no stroke — that styling belongs on the Create Assignment CTA.
   return (
     <div
       className={cn('relative shrink-0 block leading-none', className)}
@@ -13,11 +15,12 @@ export function Logo({ size = 40, className }: { size?: number; className?: stri
       aria-label="VedaAI"
     >
       <Image
-        src="/brand/logo-gradient.png"
+        src="/brand/logo.avif"
         alt="VedaAI logo"
         width={size}
         height={size}
         priority
+        unoptimized
         className="object-contain block"
         style={{ width: size, height: size }}
       />
@@ -34,15 +37,18 @@ export function Logo({ size = 40, className }: { size?: number; className?: stri
  *   - 28px logo  ↔  text-[16px] wordmark
  */
 export function Wordmark({ className }: { className?: string }) {
+  // Bricolage Grotesque optical center of "VedaAI" (no descenders) sits at cap-mid.
+  // The leading-[1] + a small negative bottom margin pulls the visual baseline up so
+  // the wordmark's cap-mid lines up with the logo tile's geometric center.
   return (
     <span
       className={cn(
-        'tracking-tight text-ink-950 leading-none align-middle',
-        // Bricolage Grotesque ExtraBold 800 matches the Figma weight
-        'font-extrabold',
+        'tracking-tight text-ink-950 font-extrabold inline-block',
+        'leading-[0.85]',
         className?.includes('text-') ? '' : 'text-[24px]',
         className
       )}
+      style={{ transform: 'translateY(-2px)' }}
     >
       VedaAI
     </span>

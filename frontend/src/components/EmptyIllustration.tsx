@@ -64,13 +64,37 @@ export function EmptyIllustration({ className }: { className?: string }) {
         <line x1="265" y1="170" x2="215" y2="220" />
       </g>
 
-      {/* Magnifier — lavender translucent lens with darker handle */}
+      {/* Magnifier — lavender translucent lens with backdrop blur on whatever sits underneath */}
+      <defs>
+        <filter id="lens-blur" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+        </filter>
+        <clipPath id="lens-clip">
+          <circle cx="260" cy="215" r="44" />
+        </clipPath>
+      </defs>
       <g>
-        {/* lens */}
-        <circle cx="260" cy="215" r="44" fill="#9F92C7" fillOpacity="0.32" stroke="#6F62A3" strokeWidth="3" />
-        {/* lens highlight */}
+        {/* Blurred re-render of underlying document parts behind the lens */}
+        <g clipPath="url(#lens-clip)" filter="url(#lens-blur)">
+          {/* Re-render the document strokes (under the lens) blurred */}
+          <rect x="160" y="95" width="125" height="155" rx="8" fill="#FFFFFF" />
+          <rect x="175" y="115" width="60" height="6" rx="3" fill="#1A1A1C" />
+          <rect x="175" y="135" width="95" height="4" rx="2" fill="#D8D7D2" />
+          <rect x="175" y="148" width="95" height="4" rx="2" fill="#D8D7D2" />
+          <rect x="175" y="161" width="75" height="4" rx="2" fill="#D8D7D2" />
+          <rect x="175" y="174" width="95" height="4" rx="2" fill="#D8D7D2" />
+          <rect x="175" y="187" width="60" height="4" rx="2" fill="#D8D7D2" />
+          {/* Red X (blurred) */}
+          <g stroke="#E11D48" strokeWidth="9" strokeLinecap="round">
+            <line x1="215" y1="170" x2="265" y2="220" />
+            <line x1="265" y1="170" x2="215" y2="220" />
+          </g>
+        </g>
+        {/* Lens fill + stroke on top */}
+        <circle cx="260" cy="215" r="44" fill="#9F92C7" fillOpacity="0.22" stroke="#6F62A3" strokeWidth="3" />
+        {/* Lens highlight */}
         <path d="M 235 195 Q 245 205, 255 200" stroke="#FFFFFF" strokeWidth="2.5" fill="none" strokeLinecap="round" opacity="0.7" />
-        {/* handle */}
+        {/* Handle */}
         <rect x="290" y="245" width="40" height="11" rx="5.5" transform="rotate(40 290 245)" fill="#3A3A3E" />
         <rect x="288" y="243" width="14" height="11" rx="5.5" transform="rotate(40 288 243)" fill="#6F62A3" />
       </g>

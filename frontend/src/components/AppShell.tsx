@@ -87,26 +87,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="hidden lg:flex gap-5 p-5 min-h-screen">
         {/* Sidebar — floating white card pinned to full viewport height. Radius matches Figma 24px. */}
         <aside className="w-[290px] shrink-0 sticky top-5 h-[calc(100vh-40px)] floating-card rounded-[24px] flex flex-col overflow-hidden">
-          {/* Logo + Wordmark: optically centered horizontally as a pair.
-              Bricolage caps sit above visual midline, so we use items-center + leading-none
-              and let the cap-height align with the tile's vertical center. */}
+          {/* Logo + Wordmark — matches Figma desktop side-by-side:
+              Logo tile 56px, Wordmark 32px ExtraBold (800), gap 12px, vertically centered. */}
           <div className="px-6 pt-7 pb-6">
-            <div className="flex items-center gap-[10px] h-[42px]">
-              <Logo size={42} />
-              <Wordmark className="text-[28px] -mt-[2px]" />
+            <div className="flex items-center gap-3">
+              <Logo size={56} />
+              <Wordmark className="text-[32px]" />
             </div>
           </div>
 
-          {/* Dynamic CTA — pixel-perfect to Figma:
-              dark pill (52px tall) + 2px brand-500 outline ring + 3px white gap between ring and pill */}
+          {/* Dynamic CTA — black pill with ORANGE GRADIENT stroke (same gradient as the Figma logo).
+              Outer wrapper holds the gradient; a 3px transparent inset creates the dark pill inside. */}
           <div className="px-5 pb-2">
             <Link
               href={cta.href}
-              className="flex items-center justify-center gap-2.5 w-full h-[52px] rounded-full bg-ink-900 text-white text-[16px] font-semibold ring-2 ring-brand-500 ring-offset-[3px] ring-offset-white hover:bg-ink-800 active:scale-[0.99] transition-all btn-shadow-dark"
+              className="block w-full rounded-full active:scale-[0.99] transition-all btn-shadow-dark"
+              style={{
+                padding: '4px',
+                backgroundImage:
+                  'linear-gradient(180deg, #FFA259 0%, #F26B1A 50%, #9E2A12 100%)',
+              }}
               aria-label={cta.label}
             >
-              <SparklesFilled size={18} className="text-white" />
-              {cta.label}
+              <span
+                className="flex items-center justify-center gap-3 w-full h-[52px] rounded-full text-white text-[17px] font-extrabold"
+                style={{
+                  backgroundColor: '#181818',
+                  // 3px white halo between the gradient ring and the dark pill
+                  boxShadow: 'inset 0 0 0 3px #FFFFFF',
+                }}
+              >
+                <span
+                  className="flex items-center justify-center gap-3 w-full h-full rounded-full"
+                  style={{ backgroundColor: '#181818' }}
+                >
+                  <SparklesFilled size={20} className="text-white" />
+                  {cta.label}
+                </span>
+              </span>
             </Link>
           </div>
 
@@ -254,11 +272,13 @@ function MobileTabBar({ pathname }: { pathname: string }) {
   ];
   return (
     <>
+      {/* Mobile bottom bar — Figma exact:
+          Full-width minus gutter, h-72, radius 24px, items distributed evenly.
+          No top highlight gradient; just a flat dark pill with a soft drop shadow underneath. */}
       <nav
-        className="fixed bottom-5 left-4 right-20 z-40 bg-ink-900 rounded-[36px] px-3 py-3 flex items-center justify-around shadow-floating"
+        className="fixed bottom-5 left-4 right-4 z-40 h-[72px] bg-ink-900 rounded-[24px] flex items-center justify-around px-4"
         style={{
-          backgroundImage:
-            'linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 28%)',
+          boxShadow: '0 12px 28px rgba(20, 20, 30, 0.22), 0 4px 8px rgba(20, 20, 30, 0.10)',
         }}
       >
         {items.map((item) => {
@@ -294,13 +314,18 @@ function MobileTabBar({ pathname }: { pathname: string }) {
           );
         })}
       </nav>
-      {/* Floating "+" FAB — mobile equivalent of Create Assignment */}
+      {/* Floating "+" FAB — Figma exact: positioned ABOVE the bar with clear separation,
+          not overlapping. Bar is at bottom-5 with h-72, so FAB sits at bottom-[112px] = above bar. */}
       <Link
         href="/assignments/new"
-        className="fixed bottom-5 right-4 z-50 w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-floating active:scale-95 transition-transform"
+        className="fixed right-4 z-50 w-16 h-16 rounded-full bg-white flex items-center justify-center active:scale-95 transition-transform"
+        style={{
+          bottom: '108px',
+          boxShadow: '0 8px 20px rgba(20, 20, 30, 0.18), 0 2px 4px rgba(20, 20, 30, 0.10)',
+        }}
         aria-label="Create Assignment"
       >
-        <span className="text-brand-500 text-3xl leading-none font-light">+</span>
+        <span className="text-brand-500 text-[40px] leading-none font-light" style={{ marginTop: '-4px' }}>+</span>
       </Link>
     </>
   );
