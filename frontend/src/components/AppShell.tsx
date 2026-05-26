@@ -13,6 +13,9 @@ import {
   PieChart,
   Settings as SettingsIcon,
   Info,
+  Menu,
+  X as XIcon,
+  Pencil,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/cn';
@@ -73,6 +76,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [counts, setCounts] = useState<{ assignments?: number; library?: number }>({});
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [schoolModalOpen, setSchoolModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     let active = true;
@@ -270,24 +279,44 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Mobile layout: bottom tab bar */}
       <div className="lg:hidden flex flex-col min-h-screen pb-[140px]">
         <header className="floating-card rounded-2xl mx-4 mt-4 h-16 px-4 flex items-center gap-2.5">
-          <Logo size={32} />
-          <Wordmark className="text-[18px]" />
+          <Link href="/home" className="flex items-center gap-2.5" aria-label="VedaAI Home">
+            <Logo size={32} />
+            <Wordmark className="text-[18px]" />
+          </Link>
           <div className="flex-1" />
           <button className="relative w-10 h-10 rounded-full flex items-center justify-center text-ink-900" aria-label="Notifications">
             <Bell className="w-5 h-5" strokeWidth={1.8} />
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-500 border border-white" />
           </button>
           <button
-            onClick={() => setProfileModalOpen(true)}
-            className="rounded-full"
-            aria-label="Edit profile"
+            onClick={() => setMobileMenuOpen(true)}
+            className="w-10 h-10 rounded-full flex items-center justify-center text-ink-950 hover:bg-ink-50"
+            aria-label="Menu"
           >
-            <PortraitAvatar size={36} />
+            <Menu className="w-6 h-6" strokeWidth={2} />
           </button>
         </header>
         <main className="flex-1 p-4">{children}</main>
         <MobileTabBar pathname={pathname} />
       </div>
+
+      {/* Mobile menu sheet */}
+      {mobileMenuOpen && (
+        <MobileMenuSheet
+          onClose={() => setMobileMenuOpen(false)}
+          onEditProfile={() => {
+            setMobileMenuOpen(false);
+            setProfileModalOpen(true);
+          }}
+          onEditSchool={() => {
+            setMobileMenuOpen(false);
+            setSchoolModalOpen(true);
+          }}
+          profileName={profile?.teacherName ?? 'John Doe'}
+          schoolName={shortSchoolName(profile?.schoolName) ?? 'Delhi Public School'}
+          schoolLocation={profile?.schoolLocation ?? 'Bokaro Steel City'}
+        />
+      )}
 
       {/* Edit modals — global, shared across desktop + mobile */}
       <ProfileEditModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
@@ -376,4 +405,103 @@ function MobileTabBar({ pathname }: { pathname: string }) {
 function shortSchoolName(full?: string): string | undefined {
   if (!full) return undefined;
   return full.split(',')[0].trim();
+}
+
+/**
+ * Mobile menu sheet — slides down from the top, holding Settings / Credits /
+ * Edit Profile / Edit School entries. Triggered by the hamburger button on
+ * the mobile topbar; closes on overlay tap or route change.
+ */
+function MobileMenuSheet({
+  onClose,
+  onEditProfile,
+  onEditSchool,
+  profileName,
+  schoolName,
+  schoolLocation,
+}: {
+  onClose: () => void;
+  onEditProfile: () => void;
+  onEditSchool: () => void;
+  profileName: string;
+  schoolName: string;
+  schoolLocation: string;
+}) {
+  // Lock body scroll while sheet is open
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  return (
+    <div
+      className="lg:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl shadow-floating p-5 pb-6"
+      >
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="text-[18px] font-bold text-ink-950">Menu</div>
+          <button
+            onClick={onClose}
+            className="w-10 h-10 rounded-full hover:bg-ink-50 flex items-center justify-center text-ink-700"
+            aria-label="Close menu"
+          >
+            <XIcon className="w-5 h-5" strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Profile + School edit shortcuts */}
+        <button
+          onClick={onEditProfile}
+          className="w-full flex items-center gap-3 p-3 rounded-2xl bg-ink-50 hover:bg-ink-100 transition-colors mb-3 text-left"
+        >
+          <PortraitAvatar size={44} />
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-bold text-ink-950 truncate">{profileName}</div>
+            <div className="text-[12px] text-ink-500">Tap to edit profile</div>
+          </div>
+          <Pencil className="w-4 h-4 text-ink-400" strokeWidth={1.8} />
+        </button>
+
+        <button
+          onClick={onEditSchool}
+          className="w-full flex items-center gap-3 p-3 rounded-2xl bg-ink-50 hover:bg-ink-100 transition-colors mb-5 text-left"
+        >
+          <SchoolCrest size={44} />
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-bold text-ink-950 truncate">{schoolName}</div>
+            <div className="text-[12px] text-ink-500 truncate">{schoolLocation}</div>
+          </div>
+          <Pencil className="w-4 h-4 text-ink-400" strokeWidth={1.8} />
+        </button>
+
+        {/* Nav links */}
+        <div className="space-y-1">
+          <Link
+            href="/settings"
+            className="flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] font-semibold text-ink-950 hover:bg-ink-50"
+          >
+            <SettingsIcon className="w-[20px] h-[20px] text-ink-500" strokeWidth={1.8} />
+            Settings
+          </Link>
+          <Link
+            href="/credits"
+            className="flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] font-semibold text-ink-950 hover:bg-ink-50"
+          >
+            <Info className="w-[20px] h-[20px] text-ink-500" strokeWidth={1.8} />
+            Credits
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
