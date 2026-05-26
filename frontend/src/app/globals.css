@@ -23,6 +23,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    /* overflow-x: clip prevents horizontal scroll without breaking position: sticky on the sidebar.
+       overflow-x: hidden would create a new scroll container and the sidebar's sticky behaviour
+       would anchor incorrectly when the page is taller than the viewport. */
+    overflow-x: clip;
   }
   *:focus-visible {
     outline: 2px solid var(--brand-500);

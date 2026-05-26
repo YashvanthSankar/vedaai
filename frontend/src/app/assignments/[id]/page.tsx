@@ -188,11 +188,11 @@ function ResultView({
   return (
     <div className="w-full max-w-[1080px] mx-auto pb-16">
       {/* Dark AI message card with Download as PDF — 24px radius (matches Figma) */}
-      <div className="rounded-[24px] bg-ink-700 px-8 py-8 lg:px-10 lg:py-10 mb-6 text-white">
-        <p className="text-[18px] lg:text-[22px] font-bold leading-relaxed">
+      <div className="rounded-[24px] bg-ink-700 px-5 py-6 lg:px-10 lg:py-10 mb-5 lg:mb-6 text-white">
+        <p className="text-[15px] lg:text-[22px] font-bold leading-relaxed">
           {intro}
         </p>
-        <div className="mt-6 flex items-center gap-3 flex-wrap">
+        <div className="mt-5 lg:mt-6 flex items-center gap-3 flex-wrap">
           <a
             href={pdfUrl(assignment._id)}
             target="_blank"

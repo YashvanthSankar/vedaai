@@ -48,16 +48,16 @@ export default function SettingsPage() {
       <div className="flex items-start gap-3 mb-6">
         <div className="w-3 h-3 mt-2 rounded-full bg-accent-green shrink-0" />
         <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
+          <h1 className="text-[22px] lg:text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
             Settings
           </h1>
-          <p className="text-[15px] text-ink-500 mt-1">
+          <p className="text-[14px] lg:text-[15px] text-ink-500 mt-1">
             Profile, school information, and default values for new assignments.
           </p>
         </div>
       </div>
 
-      <div className="bg-warmpaper rounded-3xl shadow-card p-10">
+      <div className="bg-warmpaper rounded-3xl shadow-card p-5 lg:p-10">
         <h2 className="text-[22px] font-bold text-ink-950">Profile</h2>
         <p className="text-[15px] text-ink-500 mt-1 mb-7">
           These details appear on the sidebar, topbar, and every generated paper.
@@ -108,7 +108,7 @@ export default function SettingsPage() {
           Pre-fill the Create form with these values.
         </p>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormRow label="Default Subject">
             <input
               className="input-pill"

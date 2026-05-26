@@ -127,8 +127,8 @@ export default function AssignmentsPage() {
                 ))}
               </div>
 
-              {/* Floating Create Assignment pill — h-14 (56px), text 16 semibold, full pill */}
-              <div className="fixed bottom-8 left-0 right-0 lg:left-[310px] flex justify-center pointer-events-none z-30">
+              {/* Floating Create Assignment pill — desktop only; mobile uses the round FAB on the bottom bar */}
+              <div className="hidden lg:flex fixed bottom-8 left-[310px] right-0 justify-center pointer-events-none z-30">
                 <Link
                   href="/assignments/new"
                   className="pointer-events-auto inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-stroke-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
@@ -147,13 +147,13 @@ export default function AssignmentsPage() {
 
 function PageHeader({ hasAny }: { hasAny: boolean }) {
   return (
-    <div className="flex items-start gap-3 px-2 lg:px-1 mb-5">
+    <div className="flex items-start gap-3 px-1 mb-5">
       <div className="w-3 h-3 mt-2 rounded-full bg-accent-green shrink-0" />
       <div>
-        <h1 className="text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
+        <h1 className="text-[22px] lg:text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
           Assignments
         </h1>
-        <p className="text-[15px] text-ink-500 mt-1">
+        <p className="text-[14px] lg:text-[15px] text-ink-500 mt-1">
           Manage and create assignments for your classes.
         </p>
       </div>
@@ -263,10 +263,10 @@ function AssignmentCard({
   return (
     <Link
       href={`/assignments/${a._id}`}
-      className="block bg-white rounded-2xl shadow-card p-7 lg:p-8 min-h-[200px] relative hover:shadow-floating transition-shadow"
+      className="block bg-white rounded-2xl shadow-card p-5 lg:p-8 min-h-[160px] lg:min-h-[200px] relative hover:shadow-floating transition-shadow"
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-[26px] font-black text-ink-950 leading-tight underline decoration-[2px] underline-offset-[5px] decoration-ink-950">
+        <h3 className="text-[19px] lg:text-[26px] font-black text-ink-950 leading-tight underline decoration-[2px] underline-offset-[5px] decoration-ink-950 truncate max-w-[calc(100%-2rem)]">
           {a.title}
         </h3>
         <div className="relative" ref={menuRef}>
@@ -303,8 +303,8 @@ function AssignmentCard({
         </div>
       </div>
 
-      {/* Bottom row: Assigned on (left) — Due (right) */}
-      <div className="absolute left-7 right-7 lg:left-8 lg:right-8 bottom-7 flex items-baseline justify-between text-[15px] text-ink-950">
+      {/* Bottom row: Assigned on (left) — Due (right). On mobile stack vertically if too tight. */}
+      <div className="absolute left-5 right-5 lg:left-8 lg:right-8 bottom-5 lg:bottom-7 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-0 text-[13px] lg:text-[15px] text-ink-950">
         <div>
           <span className="font-bold">Assigned on </span>
           <span className="text-ink-500">: {formatDate(a.createdAt)}</span>

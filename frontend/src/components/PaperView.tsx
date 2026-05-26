@@ -20,19 +20,19 @@ export function PaperView({
   );
   const headerSchool = schoolName ?? profile?.schoolName ?? 'Your School';
   return (
-    <div className="paper-page rounded-3xl bg-paper px-10 sm:px-14 lg:px-20 py-12 lg:py-16 font-serif text-ink-950">
+    <div className="paper-page rounded-3xl bg-paper px-5 sm:px-10 lg:px-20 py-8 lg:py-16 font-serif text-ink-950">
       {/* School + subject header — centered, serif, bold */}
       <div className="text-center">
-        <h1 className="font-bold text-[28px] lg:text-[32px] tracking-tight leading-tight">
+        <h1 className="font-bold text-[20px] sm:text-[26px] lg:text-[32px] tracking-tight leading-tight">
           {headerSchool}
         </h1>
         {paper.subject && (
-          <div className="mt-2 text-[18px] lg:text-[20px] font-bold">
+          <div className="mt-2 text-[15px] sm:text-[18px] lg:text-[20px] font-bold">
             Subject: {paper.subject}
           </div>
         )}
         {paper.gradeLevel && (
-          <div className="mt-1 text-[18px] lg:text-[20px] font-bold">
+          <div className="mt-1 text-[15px] sm:text-[18px] lg:text-[20px] font-bold">
             Class: {paper.gradeLevel}
           </div>
         )}

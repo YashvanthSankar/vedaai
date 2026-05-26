@@ -113,13 +113,13 @@ export default function NewAssignmentPage() {
   return (
     <div className="w-full max-w-[920px] mx-auto">
       {/* Page header */}
-      <div className="flex items-start gap-3 mb-6">
+      <div className="flex items-start gap-3 mb-6 px-1">
         <div className="w-3 h-3 mt-2 rounded-full bg-accent-green shrink-0" />
         <div>
-          <h1 className="text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
+          <h1 className="text-[22px] lg:text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
             Create Assignment
           </h1>
-          <p className="text-[15px] text-ink-500 mt-1">
+          <p className="text-[14px] lg:text-[15px] text-ink-500 mt-1">
             Set up a new assignment for your students.
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function NewAssignmentPage() {
         <button
           onClick={() => (step === 2 ? setStep(1) : router.back())}
           disabled={submitting}
-          className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-white border border-ink-200 text-ink-950 text-[16px] font-semibold btn-shadow-light hover:bg-ink-50 active:scale-[0.99] transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2.5 h-12 px-6 lg:h-14 lg:px-8 rounded-full bg-white border border-ink-200 text-ink-950 text-[16px] font-semibold btn-shadow-light hover:bg-ink-50 active:scale-[0.99] transition-all disabled:opacity-50"
         >
           <ArrowLeft className="w-[20px] h-[20px]" strokeWidth={2.2} />
           Previous
@@ -151,7 +151,7 @@ export default function NewAssignmentPage() {
         {step === 1 ? (
           <button
             onClick={next}
-            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
+            className="inline-flex items-center gap-2.5 h-12 px-6 lg:h-14 lg:px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
           >
             Next
             <ArrowRight className="w-[20px] h-[20px]" strokeWidth={2.2} />
@@ -160,7 +160,7 @@ export default function NewAssignmentPage() {
           <button
             onClick={generate}
             disabled={submitting}
-            className="inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2.5 h-12 px-6 lg:h-14 lg:px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all disabled:opacity-50"
           >
             {submitting ? (
               <>
@@ -224,15 +224,15 @@ function Step1Card({
   };
 
   return (
-    <div className="bg-warmpaper rounded-3xl shadow-card p-10">
-      <h2 className="text-[22px] font-bold text-ink-950">Assignment Details</h2>
-      <p className="text-[15px] text-ink-500 mt-1 mb-7">
+    <div className="bg-warmpaper rounded-3xl shadow-card p-5 lg:p-10">
+      <h2 className="text-[18px] lg:text-[22px] font-bold text-ink-950">Assignment Details</h2>
+      <p className="text-[14px] lg:text-[15px] text-ink-500 mt-1 mb-6 lg:mb-7">
         Basic information about your assignment
       </p>
 
       {/* Title field — needed since backend requires one. Sized to feel native to the rest of the card. */}
       <div className="mb-5">
-        <label className="block text-[15px] font-bold text-ink-950 mb-2">Title</label>
+        <label className="block text-[14px] lg:text-[15px] font-bold text-ink-950 mb-2">Title</label>
         <input
           className="input-pill"
           placeholder="e.g. Quiz on Electricity"
@@ -241,8 +241,8 @@ function Step1Card({
         />
       </div>
 
-      {/* Subject + Class row */}
-      <div className="grid grid-cols-2 gap-4 mb-5">
+      {/* Subject + Class row — stacks on mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
         <div>
           <label className="block text-[15px] font-bold text-ink-950 mb-2">Subject</label>
           <input
@@ -344,9 +344,9 @@ function Step1Card({
         </div>
       </div>
 
-      {/* Question Type Table */}
+      {/* Question Type Table — desktop = 4-col grid; mobile = stacked card per row */}
       <div className="mt-7">
-        <div className="grid grid-cols-[1fr_44px_120px_120px] gap-4 items-center text-[15px] text-ink-950 mb-3 px-1">
+        <div className="hidden md:grid grid-cols-[1fr_44px_120px_120px] gap-4 items-center text-[15px] text-ink-950 mb-3 px-1">
           <div className="font-bold">Question Type</div>
           <div />
           <div className="text-center font-bold text-ink-700">No. of Questions</div>
@@ -354,36 +354,78 @@ function Step1Card({
         </div>
         <div className="space-y-3.5">
           {draft.questionTypes.map((row, idx) => (
-            <div
-              key={idx}
-              className="grid grid-cols-[1fr_44px_120px_120px] gap-4 items-center"
-            >
-              <TypeSelect
-                value={row.type}
-                onChange={(t) => draft.updateRow(idx, { type: t })}
-                used={usedTypes}
-                self={row.type}
-              />
-              <button
-                onClick={() => draft.removeRow(idx)}
-                disabled={draft.questionTypes.length === 1}
-                className="w-10 h-10 flex items-center justify-center rounded-full text-ink-400 hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 transition-colors"
-                aria-label="Remove row"
-              >
-                <X className="w-5 h-5" strokeWidth={1.8} />
-              </button>
-              <NumberStepper
-                value={row.count}
-                min={1}
-                max={50}
-                onChange={(v) => draft.updateRow(idx, { count: v })}
-              />
-              <NumberStepper
-                value={row.marksPerQuestion}
-                min={1}
-                max={100}
-                onChange={(v) => draft.updateRow(idx, { marksPerQuestion: v })}
-              />
+            <div key={idx}>
+              {/* Desktop grid row */}
+              <div className="hidden md:grid grid-cols-[1fr_44px_120px_120px] gap-4 items-center">
+                <TypeSelect
+                  value={row.type}
+                  onChange={(t) => draft.updateRow(idx, { type: t })}
+                  used={usedTypes}
+                  self={row.type}
+                />
+                <button
+                  onClick={() => draft.removeRow(idx)}
+                  disabled={draft.questionTypes.length === 1}
+                  className="w-10 h-10 flex items-center justify-center rounded-full text-ink-400 hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 transition-colors"
+                  aria-label="Remove row"
+                >
+                  <X className="w-5 h-5" strokeWidth={1.8} />
+                </button>
+                <NumberStepper
+                  value={row.count}
+                  min={1}
+                  max={50}
+                  onChange={(v) => draft.updateRow(idx, { count: v })}
+                />
+                <NumberStepper
+                  value={row.marksPerQuestion}
+                  min={1}
+                  max={100}
+                  onChange={(v) => draft.updateRow(idx, { marksPerQuestion: v })}
+                />
+              </div>
+              {/* Mobile stacked row */}
+              <div className="md:hidden bg-white border border-ink-150 rounded-2xl p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <div className="flex-1">
+                    <label className="block text-[12px] font-bold text-ink-700 mb-1.5">Question Type</label>
+                    <TypeSelect
+                      value={row.type}
+                      onChange={(t) => draft.updateRow(idx, { type: t })}
+                      used={usedTypes}
+                      self={row.type}
+                    />
+                  </div>
+                  <button
+                    onClick={() => draft.removeRow(idx)}
+                    disabled={draft.questionTypes.length === 1}
+                    className="w-10 h-10 mt-6 flex items-center justify-center rounded-full text-ink-400 hover:bg-ink-100 disabled:opacity-30 shrink-0"
+                    aria-label="Remove row"
+                  >
+                    <X className="w-5 h-5" strokeWidth={1.8} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[12px] font-bold text-ink-700 mb-1.5">No. of Questions</label>
+                    <NumberStepper
+                      value={row.count}
+                      min={1}
+                      max={50}
+                      onChange={(v) => draft.updateRow(idx, { count: v })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-bold text-ink-700 mb-1.5">Marks</label>
+                    <NumberStepper
+                      value={row.marksPerQuestion}
+                      min={1}
+                      max={100}
+                      onChange={(v) => draft.updateRow(idx, { marksPerQuestion: v })}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -448,8 +490,8 @@ function Step2Card({
 }) {
   const draft = useDraft();
   return (
-    <div className="bg-warmpaper rounded-3xl shadow-card p-10">
-      <h2 className="text-[22px] font-bold text-ink-950">Review &amp; Confirm</h2>
+    <div className="bg-warmpaper rounded-3xl shadow-card p-5 lg:p-10">
+      <h2 className="text-[18px] lg:text-[22px] font-bold text-ink-950">Review &amp; Confirm</h2>
       <p className="text-[15px] text-ink-500 mt-1 mb-7">
         Double-check the details before generating your paper.
       </p>
@@ -511,7 +553,7 @@ function Step2Card({
 
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[200px_1fr] gap-4 py-2.5 border-b border-ink-100 last:border-0">
+    <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-1 sm:gap-4 py-2.5 border-b border-ink-100 last:border-0">
       <div className="text-[14px] text-ink-500 font-medium">{label}</div>
       <div className="text-[15px] text-ink-950 font-medium">{value}</div>
     </div>

@@ -12,11 +12,13 @@ import {
   BookOpen,
   PieChart,
   Settings as SettingsIcon,
+  Info,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/cn';
 import { Logo, Wordmark, SparklesFilled } from '@/components/Brand';
-import { PortraitAvatar } from '@/components/Avatars';
+import { PortraitAvatar, SchoolCrest } from '@/components/Avatars';
+import { ProfileEditModal, SchoolEditModal } from '@/components/EditModals';
 import { api } from '@/lib/api';
 import { useProfile } from '@/lib/profile';
 
@@ -69,6 +71,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const profile = useProfile();
 
   const [counts, setCounts] = useState<{ assignments?: number; library?: number }>({});
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [schoolModalOpen, setSchoolModalOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -83,18 +87,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-canvas">
-      {/* Desktop layout: gutter padding around the floating sidebar + main column */}
-      <div className="hidden lg:flex gap-5 p-5 min-h-screen">
-        {/* Sidebar — floating white card pinned to full viewport height. Radius matches Figma 24px. */}
-        <aside className="w-[290px] shrink-0 sticky top-5 h-[calc(100vh-40px)] floating-card rounded-[24px] flex flex-col overflow-hidden">
-          {/* Logo + Wordmark — matches Figma desktop side-by-side:
-              Logo tile 56px, Wordmark 32px ExtraBold (800), gap 12px, vertically centered. */}
-          <div className="px-6 pt-7 pb-6">
+      {/* Desktop layout: fixed sidebar + main column offset to its right.
+          Sidebar is position: fixed so it stays put across every page regardless of content height. */}
+      <div className="hidden lg:block min-h-screen">
+        {/* Sidebar — fixed white card, viewport-tall, pinned to top-left with gutter */}
+        <aside className="fixed left-5 top-5 z-30 w-[290px] h-[calc(100vh-40px)] floating-card rounded-[24px] flex flex-col overflow-hidden">
+          {/* Logo + Wordmark — entire row links to /home. */}
+          <Link
+            href="/home"
+            className="block px-6 pt-7 pb-6 hover:opacity-90 transition-opacity"
+            aria-label="VedaAI Home"
+          >
             <div className="flex items-center gap-3">
               <Logo size={56} />
               <Wordmark className="text-[32px]" />
             </div>
-          </div>
+          </Link>
 
           {/* Dynamic CTA — black pill with ORANGE GRADIENT stroke (same gradient as the Figma logo).
               Outer wrapper holds the gradient; a 3px transparent inset creates the dark pill inside. */}
@@ -166,8 +174,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Flexible spacer so Settings + school card pin to the bottom */}
           <div className="flex-1" />
 
-          {/* Settings */}
-          <div className="px-3 pb-2">
+          {/* Settings + Credits */}
+          <div className="px-3 pb-2 space-y-1">
             <Link
               href="/settings"
               className={cn(
@@ -180,12 +188,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <SettingsIcon className="w-[20px] h-[20px] text-ink-400" strokeWidth={1.6} />
               Settings
             </Link>
+            <Link
+              href="/credits"
+              className={cn(
+                'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] transition-colors',
+                pathname.startsWith('/credits')
+                  ? 'bg-ink-100 text-ink-950 font-bold'
+                  : 'text-ink-500 hover:bg-ink-50 font-semibold'
+              )}
+            >
+              <Info className="w-[20px] h-[20px] text-ink-400" strokeWidth={1.6} />
+              Credits
+            </Link>
           </div>
 
-          {/* School card — live from profile */}
+          {/* School card — live from profile. Click opens SchoolEditModal. */}
           <div className="px-4 pb-5">
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-ink-50">
-              <PortraitAvatar size={48} />
+            <button
+              onClick={() => setSchoolModalOpen(true)}
+              className="w-full flex items-center gap-3 p-3 rounded-2xl bg-ink-50 hover:bg-ink-100 transition-colors text-left"
+              aria-label="Edit school"
+            >
+              <SchoolCrest size={48} />
               <div className="leading-tight min-w-0">
                 <div className="text-[15px] font-bold text-ink-950 truncate">
                   {shortSchoolName(profile?.schoolName) ?? 'Delhi Public School'}
@@ -194,12 +218,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {profile?.schoolLocation ?? 'Bokaro Steel City'}
                 </div>
               </div>
-            </div>
+            </button>
           </div>
         </aside>
 
-        {/* Main column */}
-        <div className="flex-1 flex flex-col min-w-0 gap-5">
+        {/* Main column — offset to the right of the fixed sidebar (290px + 20px left + 20px gap = 330px) */}
+        <div className="flex flex-col min-w-0 gap-5 pl-[330px] pr-5 pt-5 pb-5 min-h-screen">
           {/* Floating topbar card */}
           <header className="floating-card rounded-3xl h-[88px] px-6 flex items-center gap-4">
             <button
@@ -225,7 +249,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Bell className="w-[22px] h-[22px]" strokeWidth={1.8} />
               <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-brand-500 border-2 border-white" />
             </button>
-            <button className="flex items-center gap-2.5 pl-2 pr-3 h-12 rounded-full bg-white border border-ink-100 shadow-card hover:bg-ink-50 transition-colors">
+            <button
+              onClick={() => setProfileModalOpen(true)}
+              className="flex items-center gap-2.5 pl-2 pr-3 h-12 rounded-full bg-white border border-ink-100 shadow-card hover:bg-ink-50 transition-colors"
+              aria-label="Edit profile"
+            >
               <PortraitAvatar size={36} />
               <span className="text-[15px] font-semibold text-ink-950 max-w-[140px] truncate">
                 {profile?.teacherName ?? 'John Doe'}
@@ -249,11 +277,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Bell className="w-5 h-5" strokeWidth={1.8} />
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-500 border border-white" />
           </button>
-          <PortraitAvatar size={36} />
+          <button
+            onClick={() => setProfileModalOpen(true)}
+            className="rounded-full"
+            aria-label="Edit profile"
+          >
+            <PortraitAvatar size={36} />
+          </button>
         </header>
         <main className="flex-1 p-4">{children}</main>
         <MobileTabBar pathname={pathname} />
       </div>
+
+      {/* Edit modals — global, shared across desktop + mobile */}
+      <ProfileEditModal open={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
+      <SchoolEditModal open={schoolModalOpen} onClose={() => setSchoolModalOpen(false)} />
     </div>
   );
 }
