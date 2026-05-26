@@ -1,0 +1,90 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --canvas: #EFEEEA;
+    --paper: #FFFFFF;
+    --ink-950: #0A0A0C;
+    --ink-900: #1A1A1C;
+    --ink-500: #6B6B70;
+    --ink-200: #D8D7D2;
+    --ink-100: #EDECE8;
+    --brand-500: #EF6A1A;
+  }
+  html, body {
+    background: var(--canvas);
+    color: var(--ink-900);
+    font-family: 'Satoshi', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  *:focus-visible {
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+  .btn-primary {
+    @apply bg-ink-950 text-white hover:bg-ink-900 active:scale-[0.99] rounded-full;
+  }
+  .btn-outline {
+    @apply bg-white text-ink-900 border border-ink-200 hover:bg-ink-50 rounded-full;
+  }
+  .btn-ghost {
+    @apply text-ink-500 hover:bg-ink-50 hover:text-ink-900 rounded-full;
+  }
+
+  /* Inputs */
+  .input-pill {
+    @apply w-full rounded-full bg-ink-50 px-5 h-12 text-[15px] text-ink-900 placeholder:text-ink-400 outline-none focus:bg-white focus:ring-2 focus:ring-ink-200 transition-all;
+  }
+  .textarea-pill {
+    @apply w-full rounded-2xl bg-ink-50 px-5 py-4 text-[15px] text-ink-900 placeholder:text-ink-400 outline-none resize-none focus:bg-white focus:ring-2 focus:ring-ink-200 transition-all;
+  }
+
+  /* Floating cards (sidebar/topbar) */
+  .floating-card {
+    @apply bg-white shadow-card;
+  }
+}
+
+/* Paper page (output) */
+.paper-page {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20,20,30,0.04), 0 12px 36px rgba(20,20,30,0.08);
+}
+
+/* Underline-only field for student info */
+.underline-field {
+  border: none;
+  border-bottom: 1.5px solid var(--ink-900);
+  background: transparent;
+  padding: 0 4px;
+  outline: none;
+  min-width: 200px;
+  font-family: Georgia, serif;
+}
+
+/* Bottom fade mask for assignment grid (matches Figma blur at bottom) */
+.grid-fade-mask {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 120px), transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 120px), transparent 100%);
+}
+
+/* Scrollbar polish */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #D8D7D2; border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:hover { background: #B5B5B9; background-clip: padding-box; border: 2px solid transparent; }
