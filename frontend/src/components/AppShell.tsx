@@ -256,7 +256,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               aria-label="Notifications"
             >
               <Bell className="w-[22px] h-[22px]" strokeWidth={1.8} />
-              <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-brand-500 border-2 border-white" />
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-brand-500 border-2 border-white animate-pulse-dot" />
             </button>
             <button
               onClick={() => setProfileModalOpen(true)}
@@ -438,14 +438,14 @@ function MobileMenuSheet({
 
   return (
     <div
-      className="lg:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
+      className="lg:hidden fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl shadow-floating p-5 pb-6"
+        className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl shadow-floating p-5 pb-6 animate-sheet-down"
       >
         {/* Header row */}
         <div className="flex items-center justify-between mb-5">

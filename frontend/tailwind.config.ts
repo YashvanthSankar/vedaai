@@ -60,6 +60,38 @@ const config: Config = {
         '2xl': '24px',
         '3xl': '32px',
       },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'sheet-down': {
+          '0%': { opacity: '0', transform: 'translateY(-16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'modal-in': {
+          '0%': { opacity: '0', transform: 'scale(0.96) translateY(4px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        'pulse-dot': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.2)', opacity: '0.7' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 180ms ease-out',
+        'fade-up': 'fade-up 240ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'sheet-down': 'sheet-down 260ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'modal-in': 'modal-in 220ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'pulse-dot': 'pulse-dot 2.4s ease-in-out infinite',
+      },
+      transitionTimingFunction: {
+        spring: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
       fontSize: {
         '2xs': ['11px', { lineHeight: '14px' }],
         xs: ['12px', { lineHeight: '16px' }],

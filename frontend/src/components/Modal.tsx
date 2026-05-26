@@ -46,7 +46,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -55,7 +55,7 @@ export function Modal({
       <div
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          'w-full bg-white rounded-3xl shadow-floating overflow-hidden flex flex-col',
+          'w-full bg-white rounded-3xl shadow-floating overflow-hidden flex flex-col animate-modal-in',
           'max-h-[calc(100vh-32px)]',
           sizeClass
         )}
