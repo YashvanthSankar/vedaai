@@ -19,7 +19,7 @@
 | **End-to-end time** | ~3–8 s for a typical paper (25 questions, 60 marks, single-PDF reference). Tested live. |
 | **Built in** | ~2 weeks, solo, end-to-end including infra. |
 
-If you only have time to look at three things, look at these:
+The three files that carry the most weight:
 
 1. The **request lifecycle** diagram below — shows how API → queue → worker → WS → browser fit together.
 2. [`backend/src/services/groq.ts`](backend/src/services/groq.ts) and [`backend/src/services/prompt.ts`](backend/src/services/prompt.ts) — the LLM prompt + Zod-validated parsing.
@@ -27,9 +27,7 @@ If you only have time to look at three things, look at these:
 
 ---
 
-## The three decisions worth defending
-
-Hiring engineers don't want a feature list — they want to see how you think under constraint.
+## Three decisions worth defending
 
 ### 1. The API does *not* call the LLM. A separate worker does.
 
@@ -69,7 +67,7 @@ unusual PDF, the assignment is created anyway and the model just doesn't get the
 text. The controller logs the extracted character count so you can verify it really read
 the file. See [`backend/src/controllers/assignment.controller.ts`](backend/src/controllers/assignment.controller.ts) lines 56–76.
 
-There are six more decisions like this in the [Trade-offs](#trade-offs--things-i-considered-and-rejected) section below. These three are the ones I'd want to talk through in an interview.
+Six more decisions like this are documented in the [Trade-offs](#trade-offs--things-i-considered-and-rejected) section below.
 
 ---
 
@@ -428,9 +426,9 @@ Prereqs: Node 20+, Docker, a free Groq API key from <https://console.groq.com>.
 
 ---
 
-## Trade-offs — things I considered and rejected
+## Trade-offs — things considered and rejected
 
-Most are short on purpose. The three biggest are at the top of the README.
+The three biggest are at the top of the README; these are the smaller ones.
 
 - **`tsx` in production, not `tsc` build.** Saves a build minute on every deploy, and the
   loader cost of `tsx` is dominated by Groq latency anyway. PM2's `max_memory_restart: 400M`
@@ -468,7 +466,7 @@ Most are short on purpose. The three biggest are at the top of the README.
 
 ## What I'd add for production
 
-Honesty matters more than pretending it's complete. If this were going to real teachers tomorrow:
+If this were going to real teachers tomorrow:
 
 | Gap | What I'd add | Where it'd go |
 |---|---|---|
@@ -485,7 +483,7 @@ Honesty matters more than pretending it's complete. If this were going to real t
 
 ## What's beyond the brief
 
-I implemented these because they made the product feel real, not because the rubric asked:
+Built to make the product feel real, not because the rubric asked:
 
 - **Dashboard** at `/home` with live stats from `/api/assignments` (total / ready / in-progress / failed).
 - **Toolkit** at `/toolkit` with 6 preset templates (Quick Quiz, Long Test, Diagnostic, Numerical, Diagram-Based, Rapid Review) that pre-fill the Create form.
