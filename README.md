@@ -17,7 +17,7 @@
 | **Stack** | Next.js 15 (App Router) + Zustand · Express 4 + TypeScript · MongoDB 7 + Mongoose · Redis 7 + BullMQ · WebSocket (`ws`) · Groq `llama-3.3-70b-versatile` · unpdf · PDFKit · Tailwind + Bricolage Grotesque |
 | **Where it runs** | Vercel (frontend) → nginx + PM2 on AWS EC2 t4g.small Mumbai (API + worker) → MongoDB & Redis on the same instance, bound to localhost. TLS via Let's Encrypt (auto-renew), DNS via Cloudflare (gray-cloud), WSS straight through. See [Hosting choices](#hosting-choices--why-this-not-that) for why each box was picked over the popular alternative. |
 | **End-to-end time** | ~3–8 s for a typical paper (25 questions, 60 marks, single-PDF reference). Tested live. |
-| **Built in** | ~2 weeks, solo, end-to-end including infra. |
+| **Scope** | Frontend, backend, infrastructure, deployment — all my own work. |
 
 The three files that carry the most weight:
 
@@ -27,7 +27,7 @@ The three files that carry the most weight:
 
 ---
 
-## Three decisions worth defending
+## Three decisions that shaped the architecture
 
 ### 1. The API does *not* call the LLM. A separate worker does.
 
@@ -67,11 +67,11 @@ unusual PDF, the assignment is created anyway and the model just doesn't get the
 text. The controller logs the extracted character count so you can verify it really read
 the file. See [`backend/src/controllers/assignment.controller.ts`](backend/src/controllers/assignment.controller.ts) lines 56–76.
 
-Six more decisions like this are documented in the [Trade-offs](#trade-offs--things-i-considered-and-rejected) section below.
+Seven more are documented in the [Trade-offs](#trade-offs--things-considered-and-rejected) section below.
 
 ---
 
-## Request lifecycle (the part the brief actually grades)
+## Request lifecycle
 
 ```
 ┌──────────┐  POST /api/assignments    ┌───────────────┐
@@ -100,22 +100,21 @@ Then later, on demand:
 GET /api/assignments/:id/pdf  →  PDFKit renders A4 paper from the same JSON.
 ```
 
-Why three independently moving pieces (API, worker, WS hub) instead of one fat handler:
-each one fails differently, scales differently, and gets restarted independently by PM2.
-The worker can crash mid-generation and BullMQ will retry it; the API stays up. The API
-can be redeployed and existing in-flight jobs are unaffected.
+Three independently moving pieces — API, worker, WS hub — each one fails differently,
+scales differently, and gets restarted independently by PM2. The worker can crash
+mid-generation and BullMQ retries the job; the API stays up. The API can be redeployed
+and in-flight jobs are unaffected.
 
 ---
 
 ## Hosting choices — why this, not that
 
-Each box in the infra diagram below is a deliberate pick over a popular alternative.
-The short version of every decision:
+Every box in the infrastructure diagram was a deliberate pick over a popular alternative:
 
 | Box | What I picked | What I rejected | Why |
 |---|---|---|---|
 | **Frontend host** | **Vercel** | Netlify · Cloudflare Pages · self-hosted Next | Native Next.js 15 support (RSC, streaming, ISR), zero-config preview URLs on every PR, free TLS + global CDN. Netlify would have worked but Vercel ships Next's own edge runtime. Cloudflare Pages still has rough edges with App Router streaming. |
-| **Backend host** | **AWS EC2 `t4g.small` (ARM, Mumbai)** | Render · Railway · Fly.io · Vercel Functions | Render and Railway sleep free dynos and charge per-process — I need *two* long-running processes (API + worker) plus persistent WS connections. Fly is great but the free allowance got slashed in 2024. EC2 ARM gives me 2 vCPU / 2 GB / 20 GB SSD on the t4g free trial through Dec 2026, with full control over nginx + PM2 + systemd. Same instance hosts Mongo and Redis on `127.0.0.1` — no cross-network latency. |
+| **Backend host** | **AWS EC2 `t4g.small` (ARM, Mumbai)** | Render · Railway · Fly.io · Vercel Functions | Render and Railway sleep free dynos and charge per-process — this app needs *two* long-running processes (API + worker) plus persistent WS connections. Fly is solid but the free allowance was cut in 2024. EC2 ARM Graviton gives me 2 vCPU / 2 GB / 20 GB SSD at ~$13/month with full control over nginx + PM2 + systemd. Same instance hosts Mongo and Redis on `127.0.0.1` — no cross-network latency. |
 | **Why not serverless for the API?** | — | Vercel Functions / Lambda | Two killers: (1) WebSocket connections need a persistent process — serverless cold-starts and 10-minute timeouts don't fit. (2) BullMQ workers must be long-lived to pull jobs from Redis; you'd end up paying a long-running Lambda anyway. Putting the WS hub on EC2 sidesteps both problems. |
 | **Database** | **MongoDB 7 on the EC2 box, bound to `127.0.0.1`** | MongoDB Atlas free tier · Supabase · PlanetScale | Atlas free tier is 512 MB shared — fine for now, but every query crosses the public internet and adds ~30–80 ms. On-instance Mongo gives me sub-millisecond reads and no per-doc fees. Trade-off: I'm responsible for backups. Acceptable for an assignment; first thing I'd change for real production (see [What I'd add for production](#what-id-add-for-production)). |
 | **Queue / pub-sub** | **Redis 7 on the EC2 box, bound to `127.0.0.1`** | **Upstash Redis** · ElastiCache · Redis Cloud | Upstash is HTTP-based and bills per command — fine for cache reads, terrible for BullMQ which makes hundreds of `BRPOPLPUSH` calls per second per worker. The first time a job loops you'd burn through the free tier. ElastiCache is overkill (~$13/mo minimum). Self-hosted Redis on the same box as the worker = zero network hop, zero per-command cost, and the same Redis powers both BullMQ *and* WS pub/sub. |
@@ -127,11 +126,9 @@ The short version of every decision:
 | **PDF parsing** | **unpdf** | pdf-parse · pdfjs-dist directly | Already documented above in [Three decisions worth defending](#three-decisions-worth-defending) (#3). |
 | **PDF generation** | **PDFKit** | Puppeteer print-to-PDF · react-pdf | Puppeteer ships a 200 MB headless Chromium — overkill for an A4 exam paper, and it doesn't play nice with `t4g.small` RAM. react-pdf needs a React tree to render. PDFKit lets me lay out the page imperatively with full control over fonts, spacing, and color-coded difficulty badges. |
 
-The headline trade-off across all of these: **one boring box doing predictable things,
-not five trendy services bolted together**. Every piece I picked has been around for 5+
-years and has documentation that hasn't churned. The whole stack reproduces from
-`docker compose up` locally and from a handful of `apt install` commands on the
-production box.
+Common thread across all of these: every piece has been production-stable for 5+ years
+with documentation that hasn't churned. The whole stack reproduces from `docker compose up`
+locally and from a handful of `apt install` commands on the production box.
 
 ---
 
@@ -207,25 +204,25 @@ Cold-start: there isn't one — PM2 keeps both processes warm.
 
 | Layer | Library | Version | Why this and not the alternative |
 |---|---|---|---|
-| **Frontend framework** | Next.js | 15.1.6 (App Router) | File-system routing, easy Vercel deploy, RSC where it helps. Not Vite — wanted Vercel as the deploy target. |
+| **Frontend framework** | Next.js | 15.1.6 (App Router) | File-system routing, RSC where it helps, native Vercel deploy target. |
 | | React | 19 | — |
 | | TypeScript | 5.7 | — |
-| | Tailwind CSS | 3.4 | Utility classes match Figma fastest. Not CSS Modules / not a UI kit — see "no shadcn" trade-off. |
-| **State** | Zustand | 5.0 | Tiny, no provider boilerplate. Used for the draft form, profile, and groups roster. Not Redux. |
-| **Icons** | lucide-react | 0.473 | Matches the stroke weight in the Figma without restyling. |
-| **Fonts** | Bricolage Grotesque · Georgia | — | Bricolage for UI (matches Figma exactly), Georgia for the exam-paper output. |
+| | Tailwind CSS | 3.4 | Utility classes track Figma changes fastest. Custom primitives live in [`globals.css`](frontend/src/app/globals.css). |
+| **State** | Zustand | 5.0 | Single-store, no provider boilerplate. Used for the draft form, profile, and groups roster. |
+| **Icons** | lucide-react | 0.473 | Stroke weight matches the Figma without restyling. |
+| **Fonts** | Bricolage Grotesque · Georgia | — | Bricolage for UI (Figma match), Georgia for the exam-paper output. |
 | **Backend runtime** | Node | 22 | — |
-| | Express | 4.21 | Unopinionated, well-known. Not Fastify — Express's middleware ecosystem (multer especially) was the path of least resistance. |
-| | TypeScript | 5.7 | Manual type sync with frontend. |
-| | `tsx` | 4.19 | Run TS directly in prod; no separate `tsc` build step. See trade-off below. |
+| | Express | 4.21 | Middleware ecosystem (Multer, body parsers) is the most mature in Node. |
+| | TypeScript | 5.7 | Shared types with frontend, manually kept in sync. |
+| | `tsx` | 4.19 | Run TS directly in prod, no separate `tsc` build step. See trade-off below. |
 | **Validation** | Zod | 3.24 | One library, two jobs: validate user payload AND validate LLM JSON response. |
-| **DB** | MongoDB | 7 (community) | Doc-shaped data with nested sections → questions → options. Brief asks for Mongo. |
+| **DB** | MongoDB | 7 (community) | Doc-shaped data with nested sections → questions → options maps cleanly. |
 | | Mongoose | 8.9 | — |
-| **Queue / pub-sub** | Redis | 7 + ioredis 5.4 | BullMQ needs it; WS fan-out reuses it. One dependency, two uses. |
+| **Queue / pub-sub** | Redis | 7 + ioredis 5.4 | One dependency, two uses — BullMQ store and WS fan-out. |
 | | BullMQ | 5.34 | Retries, dead-letter queue, observable jobs. |
-| **WebSocket** | `ws` | 8.18 | Native, ~5 KB, attaches to the same HTTP server. Not Socket.io. |
-| **AI** | Groq SDK + `llama-3.3-70b-versatile` | 0.12 | Fastest hosted Llama 70b I know of, generous free tier, strong JSON-mode adherence. Provider-swappable in `services/groq.ts`. |
-| **File upload** | Multer | 1.4 LTS | Memory storage, 10 MB cap. Files never touch disk on the API box. |
+| **WebSocket** | `ws` | 8.18 | Native, ~5 KB, attaches to the same HTTP server. |
+| **AI** | Groq SDK + `llama-3.3-70b-versatile` | 0.12 | Fastest hosted Llama 70b inference, strong JSON-mode adherence. Provider-swappable in [`services/groq.ts`](backend/src/services/groq.ts). |
+| **File upload** | Multer | 1.4 LTS | Memory storage, 10 MB cap. Files never touch disk. |
 | **PDF read** | unpdf | 1.6 | Mozilla pdfjs wrapped for Node. Replaces `pdf-parse`. |
 | **PDF write** | PDFKit | 0.15 | Hand-laid A4 exam paper, not "print to PDF". |
 | **IDs** | uuid v4 | 11 | jobIds. |
@@ -456,8 +453,6 @@ Prereqs: Node 20+, Docker, a free Groq API key from <https://console.groq.com>.
 
 ## Trade-offs — things considered and rejected
 
-The three biggest are at the top of the README; these are the smaller ones.
-
 - **`tsx` in production, not `tsc` build.** Saves a build minute on every deploy, and the
   loader cost of `tsx` is dominated by Groq latency anyway. PM2's `max_memory_restart: 400M`
   bounds RSS. Uptime has been stable.
@@ -511,7 +506,7 @@ If this were going to real teachers tomorrow:
 
 ## What's beyond the brief
 
-Built to make the product feel real, not because the rubric asked:
+Built to make the product feel real:
 
 - **Dashboard** at `/home` with live stats from `/api/assignments` (total / ready / in-progress / failed).
 - **Toolkit** at `/toolkit` with 6 preset templates (Quick Quiz, Long Test, Diagnostic, Numerical, Diagram-Based, Rapid Review) that pre-fill the Create form.
@@ -553,19 +548,19 @@ Built to make the product feel real, not because the rubric asked:
 | **Bonus: Download as PDF** | [`services/pdf.ts`](backend/src/services/pdf.ts) — real PDFKit, A4, not print-to-pdf | ✅ |
 | **Bonus: Action bar (Regenerate)** | Top of the output page | ✅ |
 | **Bonus: Difficulty highlighting** | Bracketed tags on screen, color-coded in PDF | ✅ |
-| **Tech stack: Next.js + TS + Zustand + WS** | ✅ | ✅ |
-| **Tech stack: Node + Express + Mongo + Redis + BullMQ** | ✅ | ✅ |
+| **Tech stack: Next.js + TS + Zustand + WS** | [`frontend/`](frontend/) — see [Tech stack](#tech-stack) for versions | ✅ |
+| **Tech stack: Node + Express + Mongo + Redis + BullMQ** | [`backend/`](backend/) — see [Tech stack](#tech-stack) for versions | ✅ |
 | **AI: any LLM with structured prompt + parsing** | Groq `llama-3.3-70b-versatile`, JSON-mode + Zod | ✅ |
 | **Deployed link** | https://vedaai.yashvanth.com | ✅ |
 | **GitHub repo** | https://github.com/yashvanthsankar/vedaai | ✅ |
-| **README with architecture + approach** | this file | ✅ |
+| **README with architecture + approach** | [`README.md`](README.md) | ✅ |
 
 ---
 
 ## Reproducing the deployment
 
-Every command actually run, in order. No AWS Console for the real work — CLI all the way
-so the deployment is reproducible and audit-able from shell history.
+Every command, in order. CLI-driven end to end so the entire deployment is reproducible
+from shell history.
 
 ### 1. Provision the EC2 instance (AWS CLI)
 
@@ -725,7 +720,7 @@ wscat -c wss://api.vedaai.yashvanth.com/ws
 - **Logs:** `pm2 logs vedaai-api` and `pm2 logs vedaai-worker` — one stream per process.
 - **Restart after a code pull:** `git pull && cd backend && npm ci && pm2 restart all`.
 - **Mongo backups:** currently manual (`mongodump`); first thing I'd add for prod — see [What I'd add for production](#what-id-add-for-production).
-- **Cost:** EC2 t4g.small is free under the AWS T4g free trial through Dec 2026. After that ~$13/mo. Vercel hobby tier covers the frontend. Cloudflare DNS is free. Total today: **$0/month** for the live demo.
+- **Cost:** EC2 t4g.small in ap-south-1 runs ~$13/month on-demand (cheaper with a 1-year Savings Plan). Vercel hobby tier covers the frontend at $0. Cloudflare DNS is free. Domain is ~$12/year. Total run rate: **~$13/month**.
 
 ---
 
