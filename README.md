@@ -15,7 +15,7 @@
 |---|---|
 | **What it does** | Teacher fills a form (title, subject, due date, file, question breakdown, free-text instructions) → background worker prompts an LLM, validates the JSON response against a strict schema, streams progress to the browser, renders the paper, exports a real PDF. |
 | **Stack** | Next.js 15 (App Router) + Zustand · Express 4 + TypeScript · MongoDB 7 + Mongoose · Redis 7 + BullMQ · WebSocket (`ws`) · Groq `llama-3.3-70b-versatile` · unpdf · PDFKit · Tailwind + Bricolage Grotesque |
-| **Where it runs** | Vercel (frontend) → nginx + PM2 on AWS EC2 t4g.small Mumbai (API + worker) → MongoDB & Redis on-instance, bound to localhost. TLS via Let's Encrypt, DNS via Cloudflare. |
+| **Where it runs** | Vercel (frontend) → nginx + PM2 on AWS EC2 t4g.small Mumbai (API + worker) → MongoDB & Redis on the same instance, bound to localhost. TLS via Let's Encrypt (auto-renew), DNS via Cloudflare (gray-cloud), WSS straight through. See [Hosting choices](#hosting-choices--why-this-not-that) for why each box was picked over the popular alternative. |
 | **End-to-end time** | ~3–8 s for a typical paper (25 questions, 60 marks, single-PDF reference). Tested live. |
 | **Built in** | ~2 weeks, solo, end-to-end including infra. |
 
@@ -104,6 +104,34 @@ Why three independently moving pieces (API, worker, WS hub) instead of one fat h
 each one fails differently, scales differently, and gets restarted independently by PM2.
 The worker can crash mid-generation and BullMQ will retry it; the API stays up. The API
 can be redeployed and existing in-flight jobs are unaffected.
+
+---
+
+## Hosting choices — why this, not that
+
+Each box in the infra diagram below is a deliberate pick over a popular alternative.
+The short version of every decision:
+
+| Box | What I picked | What I rejected | Why |
+|---|---|---|---|
+| **Frontend host** | **Vercel** | Netlify · Cloudflare Pages · self-hosted Next | Native Next.js 15 support (RSC, streaming, ISR), zero-config preview URLs on every PR, free TLS + global CDN. Netlify would have worked but Vercel ships Next's own edge runtime. Cloudflare Pages still has rough edges with App Router streaming. |
+| **Backend host** | **AWS EC2 `t4g.small` (ARM, Mumbai)** | Render · Railway · Fly.io · Vercel Functions | Render and Railway sleep free dynos and charge per-process — I need *two* long-running processes (API + worker) plus persistent WS connections. Fly is great but the free allowance got slashed in 2024. EC2 ARM gives me 2 vCPU / 2 GB / 20 GB SSD on the t4g free trial through Dec 2026, with full control over nginx + PM2 + systemd. Same instance hosts Mongo and Redis on `127.0.0.1` — no cross-network latency. |
+| **Why not serverless for the API?** | — | Vercel Functions / Lambda | Two killers: (1) WebSocket connections need a persistent process — serverless cold-starts and 10-minute timeouts don't fit. (2) BullMQ workers must be long-lived to pull jobs from Redis; you'd end up paying a long-running Lambda anyway. Putting the WS hub on EC2 sidesteps both problems. |
+| **Database** | **MongoDB 7 on the EC2 box, bound to `127.0.0.1`** | MongoDB Atlas free tier · Supabase · PlanetScale | Atlas free tier is 512 MB shared — fine for now, but every query crosses the public internet and adds ~30–80 ms. On-instance Mongo gives me sub-millisecond reads and no per-doc fees. Trade-off: I'm responsible for backups. Acceptable for an assignment; first thing I'd change for real production (see [What I'd add for production](#what-id-add-for-production)). |
+| **Queue / pub-sub** | **Redis 7 on the EC2 box, bound to `127.0.0.1`** | **Upstash Redis** · ElastiCache · Redis Cloud | Upstash is HTTP-based and bills per command — fine for cache reads, terrible for BullMQ which makes hundreds of `BRPOPLPUSH` calls per second per worker. The first time a job loops you'd burn through the free tier. ElastiCache is overkill (~$13/mo minimum). Self-hosted Redis on the same box as the worker = zero network hop, zero per-command cost, and the same Redis powers both BullMQ *and* WS pub/sub. |
+| **TLS** | **Let's Encrypt via certbot** | Cloudflare proxy TLS · AWS ACM | Cloudflare's proxy mode would have terminated WebSockets at the edge — I want WSS straight through to nginx so the connection state lives in one process. ACM only attaches to ALBs (~$22/mo minimum). certbot is free and auto-renews via systemd timer. |
+| **DNS** | **Cloudflare (DNS-only, gray cloud)** | Route 53 · Vercel DNS | Free, fast resolvers, free DDoS protection at the DNS layer. "Gray cloud" mode means Cloudflare just resolves the A record; traffic goes directly to my Elastic IP so WSS isn't proxied through their edge. |
+| **Process manager** | **PM2** | systemd units · Docker · pm2-runtime | PM2 gives me two named processes (`vedaai-api`, `vedaai-worker`), auto-restart on crash, `max_memory_restart: 400M` to bound RSS, boot persistence via `pm2 startup`, and live logs via `pm2 logs`. systemd would have meant two unit files + journalctl. Same result, more YAML. |
+| **Reverse proxy** | **nginx 1.24** | Caddy · Traefik · raw Node behind ALB | nginx is the path of most documentation. The config is ~30 lines: terminate TLS, proxy `:443 → :4000`, add `Upgrade: websocket` headers for `/ws`, bump `client_max_body_size` to 20 MB for PDF uploads. |
+| **AI provider** | **Groq + `llama-3.3-70b-versatile`** | OpenAI · Anthropic direct · Together · Replicate | Groq's inference latency is 5–10× faster than the equivalent OpenAI call (the entire 8000-token paper comes back in 2–4 s). Free tier is generous. JSON-mode adherence is strong for a Llama model. Trade-off: a single point of failure. The provider is isolated to [`services/groq.ts`](backend/src/services/groq.ts) so a swap is one file. |
+| **PDF parsing** | **unpdf** | pdf-parse · pdfjs-dist directly | Already documented above in [Three decisions worth defending](#three-decisions-worth-defending) (#3). |
+| **PDF generation** | **PDFKit** | Puppeteer print-to-PDF · react-pdf | Puppeteer ships a 200 MB headless Chromium — overkill for an A4 exam paper, and it doesn't play nice with `t4g.small` RAM. react-pdf needs a React tree to render. PDFKit lets me lay out the page imperatively with full control over fonts, spacing, and color-coded difficulty badges. |
+
+The headline trade-off across all of these: **one boring box doing predictable things,
+not five trendy services bolted together**. Every piece I picked has been around for 5+
+years and has documentation that hasn't churned. The whole stack reproduces from
+`docker compose up` locally and from a handful of `apt install` commands on the
+production box.
 
 ---
 
@@ -536,21 +564,168 @@ Built to make the product feel real, not because the rubric asked:
 
 ## Reproducing the deployment
 
-Full sequence, CLI-driven (no AWS Console for the real work):
+Every command actually run, in order. No AWS Console for the real work — CLI all the way
+so the deployment is reproducible and audit-able from shell history.
+
+### 1. Provision the EC2 instance (AWS CLI)
 
 ```bash
-# 1. IAM user with AmazonEC2FullAccess, generate access key, aws configure.
-# 2. SSH keypair:
+# IAM user with AmazonEC2FullAccess + AmazonRoute53FullAccess → access key → aws configure.
+
+# SSH keypair (ed25519, not RSA — smaller, modern):
 aws ec2 create-key-pair --key-name vedaai-deploy --key-type ed25519 \
     --query KeyMaterial --output text > ~/.ssh/vedaai-deploy.pem
 chmod 600 ~/.ssh/vedaai-deploy.pem
-# 3. Security group, instance launch, EIP allocate + associate.
-# 4. SSH in, install Node 22 + MongoDB 7 + Redis + nginx + certbot + PM2.
-# 5. git clone, npm install, write backend/.env, pm2 start ecosystem.config.cjs.
-# 6. nginx site config + certbot --nginx --domains api.vedaai.yashvanth.com.
+
+# Security group — SSH locked to my IP, HTTP/HTTPS open to the world.
+aws ec2 create-security-group --group-name vedaai-sg \
+    --description "vedaai api + worker"
+aws ec2 authorize-security-group-ingress --group-name vedaai-sg \
+    --protocol tcp --port 22  --cidr "$(curl -s ifconfig.me)/32"
+aws ec2 authorize-security-group-ingress --group-name vedaai-sg \
+    --protocol tcp --port 80  --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-name vedaai-sg \
+    --protocol tcp --port 443 --cidr 0.0.0.0/0
+
+# Launch t4g.small (ARM Graviton) in ap-south-1 (Mumbai, closest to most Indian schools).
+# Ubuntu 24.04 ARM AMI, 20 GB gp3 root volume.
+aws ec2 run-instances \
+    --image-id ami-0xxxxxxxxxxxxxxxx \
+    --instance-type t4g.small \
+    --key-name vedaai-deploy \
+    --security-groups vedaai-sg \
+    --block-device-mappings 'DeviceName=/dev/sda1,Ebs={VolumeSize=20,VolumeType=gp3}' \
+    --region ap-south-1
+
+# Allocate and attach an Elastic IP so the DNS record never has to change.
+aws ec2 allocate-address --domain vpc
+aws ec2 associate-address --instance-id i-xxxxxxxx --allocation-id eipalloc-xxxxxxxx
 ```
 
-All commands reproducible from the commit history.
+### 2. Install the runtime (on the instance)
+
+```bash
+# Node 22 (via NodeSource), MongoDB 7 (via official Mongo apt repo),
+# Redis 7 (Ubuntu's PPA), nginx, certbot, PM2.
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
+    sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+echo "deb [signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg] \
+    https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/7.0 multiverse" | \
+    sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+
+sudo apt update && sudo apt install -y \
+    nodejs mongodb-org redis-server nginx certbot python3-certbot-nginx
+sudo npm install -g pm2
+
+# Bind Mongo + Redis to localhost ONLY — they must not be reachable from the internet.
+sudo sed -i 's/bindIp:.*/bindIp: 127.0.0.1/' /etc/mongod.conf
+sudo sed -i 's/^bind .*/bind 127.0.0.1/'      /etc/redis/redis.conf
+
+sudo systemctl enable --now mongod redis-server nginx
+```
+
+### 3. Clone, configure, and start the app
+
+```bash
+git clone https://github.com/yashvanthsankar/vedaai.git ~/vedaai
+cd ~/vedaai/backend
+npm ci
+cp .env.example .env
+# Fill in: MONGODB_URI=mongodb://127.0.0.1:27017/vedaai
+#          REDIS_URL=redis://127.0.0.1:6379
+#          GROQ_API_KEY=<key>
+#          CORS_ORIGIN=https://vedaai.yashvanth.com
+
+# PM2 ecosystem — two named processes, both running through tsx.
+cat > ecosystem.config.cjs <<'EOF'
+module.exports = {
+  apps: [
+    { name: 'vedaai-api',    script: 'npx', args: 'tsx src/index.ts',                      max_memory_restart: '400M', env: { NODE_ENV: 'production' } },
+    { name: 'vedaai-worker', script: 'npx', args: 'tsx src/workers/generation.worker.ts',  max_memory_restart: '400M', env: { NODE_ENV: 'production' } },
+  ],
+};
+EOF
+
+pm2 start ecosystem.config.cjs
+pm2 save                               # persists the process list
+pm2 startup systemd                    # generates and registers a systemd unit
+# Output: copy-paste the printed `sudo env PATH=... pm2 startup systemd -u ...` line.
+```
+
+### 4. nginx with WebSocket upgrade + Let's Encrypt TLS
+
+```nginx
+# /etc/nginx/sites-available/vedaai-api
+server {
+    listen 80;
+    server_name api.vedaai.yashvanth.com;
+
+    client_max_body_size 20M;          # leave headroom over Multer's 10M cap
+
+    location / {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket upgrade headers — required for /ws to work through the proxy.
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_read_timeout                 3600s;   # don't drop idle WS connections
+    }
+}
+```
+
+```bash
+sudo ln -s /etc/nginx/sites-available/vedaai-api /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+
+# TLS — certbot edits the nginx config in place and adds a systemd timer for renewal.
+sudo certbot --nginx -d api.vedaai.yashvanth.com \
+    --non-interactive --agree-tos -m yashvanthsankar@gmail.com
+sudo systemctl status certbot.timer    # confirms auto-renew is armed
+```
+
+### 5. Cloudflare DNS
+
+`api.vedaai.yashvanth.com` → `A` record → `65.1.124.175` → **DNS-only** (gray cloud).
+Gray cloud is deliberate: orange cloud would proxy WSS through Cloudflare's edge and add
+state I don't want to manage. The TLS cert is mine, terminated on nginx.
+
+### 6. Frontend on Vercel
+
+```bash
+# From the frontend/ directory:
+vercel link                            # connect to the GitHub repo
+vercel env add NEXT_PUBLIC_API_URL  production   # https://api.vedaai.yashvanth.com
+vercel env add NEXT_PUBLIC_WS_URL   production   # wss://api.vedaai.yashvanth.com/ws
+vercel --prod
+```
+
+Custom domain `vedaai.yashvanth.com` added in the Vercel dashboard, then a `CNAME`
+record on Cloudflare pointing at the Vercel target. Vercel handles TLS itself.
+
+### 7. Verify end-to-end
+
+```bash
+curl https://api.vedaai.yashvanth.com/health
+# → {"ok":true,"ts":1738...}
+
+# WebSocket smoke test:
+wscat -c wss://api.vedaai.yashvanth.com/ws
+# > {"type":"subscribe","jobId":"00000000-0000-0000-0000-000000000000"}
+# ← {"type":"subscribed","jobId":"..."}
+```
+
+### Operational notes
+
+- **Logs:** `pm2 logs vedaai-api` and `pm2 logs vedaai-worker` — one stream per process.
+- **Restart after a code pull:** `git pull && cd backend && npm ci && pm2 restart all`.
+- **Mongo backups:** currently manual (`mongodump`); first thing I'd add for prod — see [What I'd add for production](#what-id-add-for-production).
+- **Cost:** EC2 t4g.small is free under the AWS T4g free trial through Dec 2026. After that ~$13/mo. Vercel hobby tier covers the frontend. Cloudflare DNS is free. Total today: **$0/month** for the live demo.
 
 ---
 
