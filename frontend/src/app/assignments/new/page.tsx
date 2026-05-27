@@ -329,19 +329,16 @@ function Step1Card({
         Upload images of your preferred document/image
       </p>
 
-      {/* Due Date */}
+      {/* Due Date — Figma-styled DD-MM-YYYY pill. The visible text input is masked
+          for user typing; the calendar glyph opens a hidden native picker so users
+          on any device still get a real date picker. Both surfaces write the same
+          ISO date (YYYY-MM-DD) into the draft. */}
       <div className="mt-6">
         <label className="block text-[15px] font-bold text-ink-950 mb-2">Due Date</label>
-        <div className="relative">
-          <input
-            type="date"
-            className="input-pill pr-14"
-            placeholder="DD-MM-YYYY"
-            value={draft.dueDate}
-            onChange={(e) => draft.setField('dueDate', e.target.value)}
-          />
-          <Calendar className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400 pointer-events-none" strokeWidth={1.8} />
-        </div>
+        <DueDateField
+          value={draft.dueDate}
+          onChange={(v) => draft.setField('dueDate', v)}
+        />
       </div>
 
       {/* Question Type Table — desktop = 4-col grid; mobile = stacked card per row */}
@@ -639,4 +636,90 @@ function formatHumanDate(iso: string) {
   if (isNaN(d.getTime())) return iso;
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
+}
+
+function DueDateField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (iso: string) => void;
+}) {
+  // Visible field shows DD-MM-YYYY; storage is ISO YYYY-MM-DD.
+  const [text, setText] = useState(isoToDmy(value));
+  const nativeRef = useRef<HTMLInputElement>(null);
+
+  // Keep visible text in sync if draft is reset/seeded elsewhere.
+  useEffect(() => {
+    setText(isoToDmy(value));
+  }, [value]);
+
+  const commitText = (raw: string) => {
+    // Auto-insert dashes as the user types digits.
+    const digits = raw.replace(/\D/g, '').slice(0, 8);
+    let masked = digits;
+    if (digits.length > 4) masked = `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+    else if (digits.length > 2) masked = `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    setText(masked);
+    const iso = dmyToIso(masked);
+    if (iso !== value) onChange(iso);
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        inputMode="numeric"
+        className="input-pill pr-14"
+        placeholder="DD-MM-YYYY"
+        value={text}
+        onChange={(e) => commitText(e.target.value)}
+        maxLength={10}
+      />
+      {/* Hidden native picker, triggered by the calendar glyph */}
+      <input
+        ref={nativeRef}
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+      />
+      <button
+        type="button"
+        onClick={() => {
+          const el = nativeRef.current;
+          if (!el) return;
+          // Prefer showPicker() on browsers that support it; fall back to focus+click.
+          if (typeof el.showPicker === 'function') el.showPicker();
+          else {
+            el.focus();
+            el.click();
+          }
+        }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full text-ink-400 hover:bg-ink-100 hover:text-ink-900 transition-colors"
+        aria-label="Open date picker"
+      >
+        <Calendar className="w-5 h-5" strokeWidth={1.8} />
+      </button>
+    </div>
+  );
+}
+
+function isoToDmy(iso: string): string {
+  if (!iso) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return '';
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+function dmyToIso(dmy: string): string {
+  const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(dmy);
+  if (!m) return '';
+  const [, dd, mm, yyyy] = m;
+  // Validate it's a real date (rejects 31-02-2026, etc.)
+  const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+  if (isNaN(d.getTime()) || d.getDate() !== Number(dd) || d.getMonth() + 1 !== Number(mm)) return '';
+  return `${yyyy}-${mm}-${dd}`;
 }

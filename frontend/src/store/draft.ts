@@ -25,6 +25,8 @@ export interface DraftState {
 const DEFAULT_ROWS: QuestionTypeSpec[] = [
   { type: 'mcq', count: 4, marksPerQuestion: 1 },
   { type: 'short_answer', count: 3, marksPerQuestion: 2 },
+  { type: 'diagram_graph', count: 5, marksPerQuestion: 5 },
+  { type: 'numerical', count: 5, marksPerQuestion: 5 },
 ];
 
 const initial = {

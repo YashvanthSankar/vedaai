@@ -53,12 +53,13 @@ function deriveShellState(pathname: string) {
   })();
 
   // Topbar breadcrumb — Figma keeps "Assignment" across all /assignments/* routes.
-  const breadcrumb = (() => {
-    if (pathname.startsWith('/assignments')) return { icon: 'grid' as const, label: 'Assignment' };
-    if (pathname.startsWith('/toolkit')) return { icon: 'grid' as const, label: "Teacher's Toolkit" };
-    if (pathname.startsWith('/library')) return { icon: 'grid' as const, label: 'Library' };
-    if (pathname.startsWith('/groups')) return { icon: 'grid' as const, label: 'Groups' };
-    return { icon: 'grid' as const, label: 'Home' };
+  type BreadcrumbIcon = 'grid' | 'sparkles';
+  const breadcrumb: { icon: BreadcrumbIcon; label: string } = (() => {
+    if (pathname.startsWith('/assignments')) return { icon: 'grid', label: 'Assignment' };
+    if (pathname.startsWith('/toolkit')) return { icon: 'sparkles', label: "Teacher's Toolkit" };
+    if (pathname.startsWith('/library')) return { icon: 'grid', label: 'Library' };
+    if (pathname.startsWith('/groups')) return { icon: 'grid', label: 'Groups' };
+    return { icon: 'grid', label: 'Home' };
   })();
 
   return { cta, breadcrumb };
@@ -276,6 +277,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <button className="relative w-10 h-10 rounded-full flex items-center justify-center text-ink-900" aria-label="Notifications">
             <Bell className="w-5 h-5" strokeWidth={1.8} />
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-500 border border-white" />
+          </button>
+          {/* Avatar — Figma mobile topbar sits between the bell and the hamburger.
+              Tapping opens the same profile edit modal as desktop. */}
+          <button
+            onClick={() => setProfileModalOpen(true)}
+            className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-ink-150 active:scale-95 transition-transform"
+            aria-label="Edit profile"
+          >
+            <PortraitAvatar size={36} />
           </button>
           <button
             onClick={() => setMobileMenuOpen(true)}

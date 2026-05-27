@@ -17,6 +17,7 @@ import {
 import type { AssignmentSummary, JobStatus } from '@/lib/types';
 import { cn } from '@/lib/cn';
 import { EmptyIllustration } from '@/components/EmptyIllustration';
+import { Modal } from '@/components/Modal';
 
 type StatusFilter = 'all' | JobStatus;
 
@@ -34,6 +35,8 @@ export default function AssignmentsPage() {
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [filterOpen, setFilterOpen] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<AssignmentSummary | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -58,13 +61,17 @@ export default function AssignmentsPage() {
     return () => window.removeEventListener('click', close);
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this assignment?')) return;
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
     try {
-      await deleteApi(id);
+      await deleteApi(pendingDelete._id);
+      setPendingDelete(null);
       load();
     } catch (e) {
       alert((e as Error).message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -122,7 +129,10 @@ export default function AssignmentsPage() {
                       e.stopPropagation();
                       setMenuOpenId(menuOpenId === a._id ? null : a._id);
                     }}
-                    onDelete={() => handleDelete(a._id)}
+                    onDelete={() => {
+                      setMenuOpenId(null);
+                      setPendingDelete(a);
+                    }}
                   />
                 ))}
               </div>
@@ -143,6 +153,45 @@ export default function AssignmentsPage() {
           )}
         </div>
       )}
+
+      <Modal
+        open={pendingDelete !== null}
+        onClose={() => (deleting ? null : setPendingDelete(null))}
+        title="Delete assignment?"
+        subtitle={
+          pendingDelete
+            ? `“${pendingDelete.title}” will be permanently removed. This can’t be undone.`
+            : undefined
+        }
+        size="sm"
+        footer={
+          <>
+            <button
+              onClick={() => setPendingDelete(null)}
+              disabled={deleting}
+              className="inline-flex items-center justify-center h-11 px-5 rounded-full bg-white border border-ink-200 text-ink-950 text-[14px] font-semibold hover:bg-ink-50 active:scale-[0.99] transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="inline-flex items-center justify-center h-11 px-5 rounded-full bg-brand-500 text-white text-[14px] font-semibold hover:bg-brand-600 active:scale-[0.99] transition-all disabled:opacity-60"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Deleting…
+                </>
+              ) : (
+                'Delete'
+              )}
+            </button>
+          </>
+        }
+      >
+        <div className="h-1" />
+      </Modal>
     </div>
   );
 }
@@ -221,7 +270,7 @@ function Toolbar({
           type="text"
           value={search}
           onChange={(e) => onSearch(e.target.value)}
-          placeholder="Search"
+          placeholder="Search Assignment"
           className="w-full h-12 pl-11 pr-4 rounded-full border border-ink-150 bg-white text-[15px] text-ink-900 placeholder:text-ink-400 outline-none focus:border-ink-300 transition-colors"
         />
       </div>
@@ -300,7 +349,7 @@ function AssignmentCard({
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="w-full text-left px-5 py-2.5 text-[15px] text-accent-red hover:bg-red-50"
+                className="w-full text-left px-5 py-2.5 text-[15px] text-brand-600 hover:bg-brand-50 font-semibold"
               >
                 Delete
               </button>
