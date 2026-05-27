@@ -17,7 +17,7 @@
 | **Stack** | Next.js 15 (App Router) + Zustand · Express 4 + TypeScript · MongoDB 7 + Mongoose · Redis 7 + BullMQ · WebSocket (`ws`) · Groq `llama-3.3-70b-versatile` · unpdf · PDFKit · Tailwind + Bricolage Grotesque |
 | **Where it runs** | Vercel (frontend) → nginx + PM2 on AWS EC2 t4g.small Mumbai (API + worker) → MongoDB & Redis on the same instance, bound to localhost. TLS via Let's Encrypt (auto-renew), DNS via Cloudflare (gray-cloud), WSS straight through. See [Hosting choices](#hosting-choices--why-this-not-that) for why each box was picked over the popular alternative. |
 | **End-to-end time** | ~3–8 s for a typical paper (25 questions, 60 marks, single-PDF reference). Tested live. |
-| **Scope** | Frontend, backend, infrastructure, deployment — all my own work. |
+| **Scope** | Frontend, backend, infrastructure, deployment — single-developer build. |
 
 The three files that carry the most weight:
 
@@ -460,8 +460,8 @@ Prereqs: Node 20+, Docker, a free Groq API key from <https://console.groq.com>.
 - **No UI kit (no shadcn, no MUI).** The Figma had a very specific design system —
   Bricolage Grotesque, a gradient logo, signature dark CTA with an orange gradient ring,
   mobile bottom-pill nav. Rebuilding it on top of shadcn would have meant restyling every
-  component to override the kit's defaults. Faster to write the ~8 primitives I needed by
-  hand. See [`frontend/src/components/`](frontend/src/components/).
+  component to override the kit's defaults. Building the ~8 primitives directly was
+  faster. See [`frontend/src/components/`](frontend/src/components/).
 
 - **Mobile bottom-pill bar + floating "+" FAB, not a hamburger drawer.** Matches the
   Figma exactly. The desktop sidebar has a dynamic CTA that changes label per route
@@ -733,5 +733,4 @@ Built by **Yashvanth Sankar** as the submission for VedaAI's Full-Stack Engineer
 - LinkedIn: <https://linkedin.com/in/yashvanths>
 - Email: yashvanthsankar@gmail.com
 
-The Figma source and brief belong to VedaAI. All code in this repo is my own
-implementation, written for this assignment.
+The Figma source and brief belong to VedaAI.
