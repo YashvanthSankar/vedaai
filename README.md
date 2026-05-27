@@ -5,7 +5,17 @@
 > LLM → the browser watches it generate over a WebSocket → the teacher downloads a PDF.
 > Live, on real infrastructure, end to end.
 
-**Live:** [vedaai.yashvanth.com](https://vedaai.yashvanth.com) · **API:** [api.vedaai.yashvanth.com](https://api.vedaai.yashvanth.com/health) · **Built by:** [Yashvanth Sankar](https://yashvanth.com) — [github](https://github.com/yashvanthsankar) · [linkedin](https://linkedin.com/in/yashvanths) · yashvanthsankar@gmail.com
+| | |
+|---|---|
+| **Live app** | **<https://vedaai.yashvanth.com>** |
+| **Backend API** | <https://api.vedaai.yashvanth.com> · [health](https://api.vedaai.yashvanth.com/health) |
+| **Source** | <https://github.com/yashvanthsankar/vedaai> |
+| **Built by** | [Yashvanth Sankar](https://yashvanth.com) — [github](https://github.com/yashvanthsankar) · [linkedin](https://linkedin.com/in/yashvanths) · yashvanthsankar@gmail.com |
+
+```bash
+curl https://api.vedaai.yashvanth.com/health
+# → {"ok":true,"ts":1738...}
+```
 
 ---
 
@@ -183,20 +193,6 @@ locally and from a handful of `apt install` commands on the production box.
 MongoDB and Redis bind to `127.0.0.1` only — they're not reachable from the public
 internet even though they're on the same instance. The security group exposes `:22` (my
 IP only), `:80`, and `:443`. Everything else is closed.
-
----
-
-## Live links
-
-| What | URL |
-|---|---|
-| Frontend (Vercel) | https://vedaai.yashvanth.com |
-| Backend API (AWS EC2) | https://api.vedaai.yashvanth.com |
-| Health probe | https://api.vedaai.yashvanth.com/health |
-| Source repo | https://github.com/yashvanthsankar/vedaai |
-| Credits page (inside the app) | https://vedaai.yashvanth.com/credits |
-
-Cold-start: there isn't one — PM2 keeps both processes warm.
 
 ---
 
@@ -523,37 +519,37 @@ Built to make the product feel real:
 
 | Requirement | Where | Done |
 |---|---|---|
-| Assignment Creation form | [`frontend/src/app/assignments/new/page.tsx`](frontend/src/app/assignments/new/page.tsx) | ✅ |
-| File upload (PDF / text) | Multer + unpdf extraction | ✅ |
-| Due date input | Custom DD-MM-YYYY pill | ✅ |
-| Question types | 7 types, multi-row table with steppers | ✅ |
-| Number of questions + marks | Per-row steppers, live totals | ✅ |
-| Additional instructions | Textarea, flows into the prompt verbatim | ✅ |
-| Validation (no empty / negative) | Zod schema both client-form + server-side | ✅ |
-| **State management — Zustand** | [`frontend/src/store/draft.ts`](frontend/src/store/draft.ts), `groups.ts`, [`lib/profile.ts`](frontend/src/lib/profile.ts) | ✅ |
-| **WebSocket management** | [`frontend/src/lib/ws.ts`](frontend/src/lib/ws.ts) + [`backend/src/websocket/hub.ts`](backend/src/websocket/hub.ts) | ✅ |
-| **Convert input → structured prompt** | [`backend/src/services/prompt.ts`](backend/src/services/prompt.ts) | ✅ |
-| **Generate sections, questions, difficulty, marks** | [`backend/src/services/groq.ts`](backend/src/services/groq.ts) + Zod schema | ✅ |
-| **Do not render raw LLM response** | All output goes through `PaperSchema`; rendering in [`PaperView.tsx`](frontend/src/components/PaperView.tsx) | ✅ |
-| **Backend: Node + Express + TypeScript** | [`backend/`](backend/) | ✅ |
-| **MongoDB → store assignments & results** | [`models/Assignment.ts`](backend/src/models/Assignment.ts) | ✅ |
-| **Redis → caching / job state** | BullMQ stores job state; WS pub/sub also uses Redis | ✅ |
-| **BullMQ → background jobs** | [`queues/generation.queue.ts`](backend/src/queues/generation.queue.ts), [`workers/generation.worker.ts`](backend/src/workers/generation.worker.ts) | ✅ |
-| **WebSocket → real-time updates** | [`websocket/hub.ts`](backend/src/websocket/hub.ts) (subscribe by jobId) | ✅ |
-| **Flow: API → queue → worker → store → notify** | Exactly this — see lifecycle diagram | ✅ |
-| **Output page: Student Info Section** | [`components/PaperView.tsx`](frontend/src/components/PaperView.tsx) | ✅ |
-| **Sections grouped with title + instruction + questions** | Same | ✅ |
-| **Each question shows text + difficulty + marks** | Same; difficulty as bracketed text matching Figma | ✅ |
-| **Clean, mobile-responsive exam-paper layout** | Georgia serif on white paper, generous spacing | ✅ |
-| **Bonus: Download as PDF** | [`services/pdf.ts`](backend/src/services/pdf.ts) — real PDFKit, A4, not print-to-pdf | ✅ |
-| **Bonus: Action bar (Regenerate)** | Top of the output page | ✅ |
-| **Bonus: Difficulty highlighting** | Bracketed tags on screen, color-coded in PDF | ✅ |
-| **Tech stack: Next.js + TS + Zustand + WS** | [`frontend/`](frontend/) — see [Tech stack](#tech-stack) for versions | ✅ |
-| **Tech stack: Node + Express + Mongo + Redis + BullMQ** | [`backend/`](backend/) — see [Tech stack](#tech-stack) for versions | ✅ |
-| **AI: any LLM with structured prompt + parsing** | Groq `llama-3.3-70b-versatile`, JSON-mode + Zod | ✅ |
-| **Deployed link** | https://vedaai.yashvanth.com | ✅ |
-| **GitHub repo** | https://github.com/yashvanthsankar/vedaai | ✅ |
-| **README with architecture + approach** | [`README.md`](README.md) | ✅ |
+| Assignment Creation form | [`frontend/src/app/assignments/new/page.tsx`](frontend/src/app/assignments/new/page.tsx) | Yes |
+| File upload (PDF / text) | Multer + unpdf extraction | Yes |
+| Due date input | Custom DD-MM-YYYY pill | Yes |
+| Question types | 7 types, multi-row table with steppers | Yes |
+| Number of questions + marks | Per-row steppers, live totals | Yes |
+| Additional instructions | Textarea, flows into the prompt verbatim | Yes |
+| Validation (no empty / negative) | Zod schema both client-form + server-side | Yes |
+| **State management — Zustand** | [`frontend/src/store/draft.ts`](frontend/src/store/draft.ts), `groups.ts`, [`lib/profile.ts`](frontend/src/lib/profile.ts) | Yes |
+| **WebSocket management** | [`frontend/src/lib/ws.ts`](frontend/src/lib/ws.ts) + [`backend/src/websocket/hub.ts`](backend/src/websocket/hub.ts) | Yes |
+| **Convert input → structured prompt** | [`backend/src/services/prompt.ts`](backend/src/services/prompt.ts) | Yes |
+| **Generate sections, questions, difficulty, marks** | [`backend/src/services/groq.ts`](backend/src/services/groq.ts) + Zod schema | Yes |
+| **Do not render raw LLM response** | All output goes through `PaperSchema`; rendering in [`PaperView.tsx`](frontend/src/components/PaperView.tsx) | Yes |
+| **Backend: Node + Express + TypeScript** | [`backend/`](backend/) | Yes |
+| **MongoDB → store assignments & results** | [`models/Assignment.ts`](backend/src/models/Assignment.ts) | Yes |
+| **Redis → caching / job state** | BullMQ stores job state; WS pub/sub also uses Redis | Yes |
+| **BullMQ → background jobs** | [`queues/generation.queue.ts`](backend/src/queues/generation.queue.ts), [`workers/generation.worker.ts`](backend/src/workers/generation.worker.ts) | Yes |
+| **WebSocket → real-time updates** | [`websocket/hub.ts`](backend/src/websocket/hub.ts) (subscribe by jobId) | Yes |
+| **Flow: API → queue → worker → store → notify** | Exactly this — see lifecycle diagram | Yes |
+| **Output page: Student Info Section** | [`components/PaperView.tsx`](frontend/src/components/PaperView.tsx) | Yes |
+| **Sections grouped with title + instruction + questions** | Same | Yes |
+| **Each question shows text + difficulty + marks** | Same; difficulty as bracketed text matching Figma | Yes |
+| **Clean, mobile-responsive exam-paper layout** | Georgia serif on white paper, generous spacing | Yes |
+| **Bonus: Download as PDF** | [`services/pdf.ts`](backend/src/services/pdf.ts) — real PDFKit, A4, not print-to-pdf | Yes |
+| **Bonus: Action bar (Regenerate)** | Top of the output page | Yes |
+| **Bonus: Difficulty highlighting** | Bracketed tags on screen, color-coded in PDF | Yes |
+| **Tech stack: Next.js + TS + Zustand + WS** | [`frontend/`](frontend/) — see [Tech stack](#tech-stack) for versions | Yes |
+| **Tech stack: Node + Express + Mongo + Redis + BullMQ** | [`backend/`](backend/) — see [Tech stack](#tech-stack) for versions | Yes |
+| **AI: any LLM with structured prompt + parsing** | Groq `llama-3.3-70b-versatile`, JSON-mode + Zod | Yes |
+| **Deployed link** | https://vedaai.yashvanth.com | Yes |
+| **GitHub repo** | https://github.com/yashvanthsankar/vedaai | Yes |
+| **README with architecture + approach** | [`README.md`](README.md) | Yes |
 
 ---
 
