@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { v4 as uuid } from 'uuid';
-import pdfParse from 'pdf-parse';
+import { extractText, getDocumentProxy } from 'unpdf';
 import { Assignment } from '../models/Assignment';
 import { generationQueue } from '../queues/generation.queue';
 import { QUESTION_TYPES } from '../types/assignment';
@@ -54,16 +54,24 @@ export async function createAssignment(req: Request, res: Response) {
   if (req.file) {
     try {
       if (req.file.mimetype === 'application/pdf') {
-        const parsed = await pdfParse(req.file.buffer);
-        payload.sourceText = parsed.text;
+        // unpdf handles malformed XRef tables and scanned-but-with-text PDFs that
+        // the older pdf-parse library chokes on.
+        const buf = new Uint8Array(req.file.buffer);
+        const pdf = await getDocumentProxy(buf);
+        const { text } = await extractText(pdf, { mergePages: true });
+        const extracted = Array.isArray(text) ? text.join('\n\n') : text;
+        // Cap to keep prompt size sane (schema allows 40k already)
+        payload.sourceText = extracted.slice(0, 38000);
+        console.log(
+          `[create] extracted ${extracted.length} chars from PDF (${req.file.size} bytes)`
+        );
       } else if (req.file.mimetype.startsWith('text/')) {
-        payload.sourceText = req.file.buffer.toString('utf-8');
+        payload.sourceText = req.file.buffer.toString('utf-8').slice(0, 38000);
       }
       // Image uploads (jpeg/png) don't have extractable text — silently skip
     } catch (err) {
-      // Don't fail the whole request if a PDF can't be parsed
-      // (e.g. scanned/image-only PDFs, encrypted PDFs). The user's
-      // additionalInstructions still get used; reference text is just missing.
+      // Don't fail the whole request if a PDF can't be parsed.
+      // The user's additionalInstructions still get used; reference text is just missing.
       console.warn(`[create] PDF/text parse skipped: ${(err as Error).message}`);
     }
   }

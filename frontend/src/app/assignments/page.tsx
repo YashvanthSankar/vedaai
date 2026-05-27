@@ -271,9 +271,13 @@ function AssignmentCard({
         <h3 className="text-[19px] lg:text-[26px] font-black text-ink-950 leading-tight underline decoration-[1.5px] underline-offset-[7px] decoration-ink-300 truncate max-w-[calc(100%-2rem)]">
           {a.title}
         </h3>
-        <div className="relative" ref={menuRef}>
+        <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={onToggleMenu}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleMenu(e);
+            }}
             className="-mr-2 -mt-1 w-9 h-9 flex items-center justify-center rounded-full text-ink-400 hover:bg-ink-50 hover:text-ink-900 transition-colors"
             aria-label="More"
           >
