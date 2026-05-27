@@ -52,11 +52,8 @@ function deriveShellState(pathname: string) {
     return { label: 'Create Assignment', href: '/assignments/new' };
   })();
 
-  // Topbar breadcrumb
+  // Topbar breadcrumb — Figma keeps "Assignment" across all /assignments/* routes.
   const breadcrumb = (() => {
-    if (pathname.startsWith('/assignments/new') || pathname.match(/^\/assignments\/[^/]+$/)) {
-      return { icon: 'sparkles' as const, label: 'Create New' };
-    }
     if (pathname.startsWith('/assignments')) return { icon: 'grid' as const, label: 'Assignment' };
     if (pathname.startsWith('/toolkit')) return { icon: 'grid' as const, label: "Teacher's Toolkit" };
     if (pathname.startsWith('/library')) return { icon: 'grid' as const, label: 'Library' };
@@ -86,8 +83,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     api
-      .listAssignments()
-      .then((r) => active && setCounts((c) => ({ ...c, assignments: r.total })))
+      .listAssignments({ limit: 200 })
+      .then((r) => {
+        if (!active) return;
+        const libraryCount = r.items.filter((a) => a.status === 'completed').length;
+        setCounts({ assignments: r.total, library: libraryCount });
+      })
       .catch(() => {});
     return () => {
       active = false;
@@ -100,7 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           Sidebar is position: fixed so it stays put across every page regardless of content height. */}
       <div className="hidden lg:block min-h-screen">
         {/* Sidebar — fixed white card, viewport-tall, pinned to top-left with gutter */}
-        <aside className="fixed left-5 top-5 z-30 w-[290px] h-[calc(100vh-40px)] floating-card rounded-[24px] flex flex-col overflow-hidden">
+        <aside className="fixed left-5 top-5 z-30 w-[290px] h-[calc(100vh-40px)] floating-card rounded-[32px] flex flex-col overflow-hidden">
           {/* Logo + Wordmark — entire row links to /home. */}
           <Link
             href="/home"
@@ -120,14 +121,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               href={cta.href}
               className="block w-full rounded-full active:scale-[0.99] transition-all btn-shadow-dark"
               style={{
-                padding: '4px',
+                padding: '3px',
                 backgroundImage:
-                  'linear-gradient(180deg, #FFA259 0%, #F26B1A 50%, #9E2A12 100%)',
+                  'linear-gradient(180deg, #FFB37A 0%, #F47A30 60%, #C7461F 100%)',
               }}
               aria-label={cta.label}
             >
               <span
-                className="flex items-center justify-center gap-3 w-full h-[52px] rounded-full text-white text-[17px] font-extrabold"
+                className="flex items-center justify-center gap-3 w-full h-[58px] rounded-full text-white text-[17px] font-extrabold"
                 style={{
                   backgroundColor: '#181818',
                   // 3px white halo between the gradient ring and the dark pill
@@ -159,7 +160,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] transition-colors',
+                    'flex items-center gap-3 px-4 h-[52px] rounded-[14px] text-[15px] transition-colors',
                     active
                       ? 'bg-ink-100 text-ink-950 font-bold'
                       : 'text-ink-500 hover:bg-ink-50 font-semibold'
@@ -183,12 +184,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Flexible spacer so Settings + school card pin to the bottom */}
           <div className="flex-1" />
 
-          {/* Settings + Credits */}
-          <div className="px-3 pb-2 space-y-1">
+          {/* Settings — Figma keeps Credits out of the sidebar */}
+          <div className="px-3 pb-2">
             <Link
               href="/settings"
               className={cn(
-                'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] transition-colors',
+                'flex items-center gap-3 px-4 h-[52px] rounded-[14px] text-[15px] transition-colors',
                 pathname.startsWith('/settings')
                   ? 'bg-ink-100 text-ink-950 font-bold'
                   : 'text-ink-500 hover:bg-ink-50 font-semibold'
@@ -197,25 +198,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <SettingsIcon className="w-[20px] h-[20px] text-ink-400" strokeWidth={1.6} />
               Settings
             </Link>
-            <Link
-              href="/credits"
-              className={cn(
-                'flex items-center gap-3 px-4 h-12 rounded-xl text-[15px] transition-colors',
-                pathname.startsWith('/credits')
-                  ? 'bg-ink-100 text-ink-950 font-bold'
-                  : 'text-ink-500 hover:bg-ink-50 font-semibold'
-              )}
-            >
-              <Info className="w-[20px] h-[20px] text-ink-400" strokeWidth={1.6} />
-              Credits
-            </Link>
           </div>
 
           {/* School card — live from profile. Click opens SchoolEditModal. */}
           <div className="px-4 pb-5">
             <button
               onClick={() => setSchoolModalOpen(true)}
-              className="w-full flex items-center gap-3 p-3 rounded-2xl bg-ink-50 hover:bg-ink-100 transition-colors text-left"
+              className="w-full flex items-center gap-3 p-3 rounded-[20px] bg-ink-50 hover:bg-ink-100 transition-colors text-left"
               aria-label="Edit school"
             >
               <SchoolCrest size={48} />
@@ -234,10 +223,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Main column — offset to the right of the fixed sidebar (290px + 20px left + 20px gap = 330px) */}
         <div className="flex flex-col min-w-0 gap-5 pl-[330px] pr-5 pt-5 pb-5 min-h-screen">
           {/* Floating topbar card */}
-          <header className="floating-card rounded-3xl h-[88px] px-6 flex items-center gap-4">
+          <header className="sticky top-5 z-20 floating-card rounded-[28px] h-[88px] px-6 flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="w-11 h-11 rounded-full bg-white border border-ink-100 shadow-card flex items-center justify-center text-ink-950 hover:bg-ink-50 transition-colors"
+              className="w-12 h-12 rounded-full bg-white border border-ink-100 shadow-card flex items-center justify-center text-ink-950 hover:bg-ink-50 transition-colors"
               aria-label="Back"
             >
               <ArrowLeft className="w-5 h-5" strokeWidth={1.8} />
@@ -277,8 +266,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Mobile layout: bottom tab bar */}
-      <div className="lg:hidden flex flex-col min-h-screen pb-[140px]">
-        <header className="floating-card rounded-2xl mx-4 mt-4 h-16 px-4 flex items-center gap-2.5">
+      <div className="lg:hidden flex flex-col min-h-screen pb-[148px]">
+        <header className="sticky top-4 z-20 floating-card rounded-[24px] mx-4 mt-4 h-16 px-4 flex items-center gap-2.5">
           <Link href="/home" className="flex items-center gap-2.5" aria-label="VedaAI Home">
             <Logo size={32} />
             <Wordmark className="text-[18px]" />
@@ -343,7 +332,7 @@ function MobileTabBar({ pathname }: { pathname: string }) {
           Full-width minus gutter, h-72, radius 24px, items distributed evenly.
           No top highlight gradient; just a flat dark pill with a soft drop shadow underneath. */}
       <nav
-        className="fixed bottom-5 left-4 right-4 z-40 h-[72px] bg-ink-900 rounded-[24px] flex items-center justify-around px-4"
+        className="fixed bottom-5 left-4 right-4 z-40 h-[80px] bg-ink-900 rounded-[32px] flex items-center justify-around px-4"
         style={{
           boxShadow: '0 12px 28px rgba(20, 20, 30, 0.22), 0 4px 8px rgba(20, 20, 30, 0.10)',
         }}
@@ -381,19 +370,22 @@ function MobileTabBar({ pathname }: { pathname: string }) {
           );
         })}
       </nav>
-      {/* Floating "+" FAB — Figma exact: positioned ABOVE the bar with clear separation,
-          not overlapping. Bar is at bottom-5 with h-72, so FAB sits at bottom-[112px] = above bar. */}
-      <Link
-        href="/assignments/new"
-        className="fixed right-4 z-50 w-16 h-16 rounded-full bg-white flex items-center justify-center active:scale-95 transition-transform"
-        style={{
-          bottom: '108px',
-          boxShadow: '0 8px 20px rgba(20, 20, 30, 0.18), 0 2px 4px rgba(20, 20, 30, 0.10)',
-        }}
-        aria-label="Create Assignment"
-      >
-        <span className="text-brand-500 text-[40px] leading-none font-light" style={{ marginTop: '-4px' }}>+</span>
-      </Link>
+      {/* Floating "+" FAB — only on routes outside /assignments, since the assignments
+          page already renders its own inline + floating create CTAs (avoids the Figma
+          mobile collision where FAB overlapped the empty-state CTA). */}
+      {!pathname.startsWith('/assignments') && (
+        <Link
+          href="/assignments/new"
+          className="fixed right-4 z-50 w-14 h-14 rounded-full bg-white flex items-center justify-center active:scale-95 transition-transform"
+          style={{
+            bottom: '116px',
+            boxShadow: '0 8px 20px rgba(20, 20, 30, 0.18), 0 2px 4px rgba(20, 20, 30, 0.10)',
+          }}
+          aria-label="Create Assignment"
+        >
+          <span className="text-brand-500 text-[36px] leading-none font-light" style={{ marginTop: '-3px' }}>+</span>
+        </Link>
+      )}
     </>
   );
 }

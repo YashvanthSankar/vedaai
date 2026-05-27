@@ -78,8 +78,8 @@ export default function AssignmentsPage() {
 
   return (
     <div className="w-full">
-      {/* Page header — green dot + title + subline, on canvas (no card) */}
-      <PageHeader hasAny={hasAny} />
+      {/* Figma's empty-state screen has no green-dot page header — keep canvas clean. */}
+      {!isEmpty && <PageHeader hasAny={hasAny} />}
 
       {/* Empty state — full-page illustration scene */}
       {isEmpty && <EmptyState />}
@@ -133,7 +133,7 @@ export default function AssignmentsPage() {
               <div className="hidden lg:flex sticky bottom-8 justify-center w-full z-30 pointer-events-none -mt-16">
                 <Link
                   href="/assignments/new"
-                  className="pointer-events-auto inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-stroke-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
+                  className="pointer-events-auto inline-flex items-center gap-2.5 h-[60px] px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-stroke-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
                 >
                   <Plus className="w-[20px] h-[20px]" strokeWidth={2.4} />
                   Create Assignment
@@ -231,17 +231,17 @@ function Toolbar({
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center pt-8 pb-24">
-      <EmptyIllustration className="w-[440px] max-w-full h-auto" />
-      <h2 className="mt-6 text-[22px] font-bold text-ink-950">No assignments yet</h2>
-      <p className="mt-3 text-[15px] text-ink-500 max-w-[600px] text-center leading-relaxed px-6">
+    <div className="flex flex-col items-center justify-center pt-2 lg:pt-8 pb-24">
+      <EmptyIllustration className="w-[260px] lg:w-[440px] max-w-full h-auto" />
+      <h2 className="mt-4 lg:mt-6 text-[20px] lg:text-[22px] font-bold text-ink-950">No assignments yet</h2>
+      <p className="mt-3 text-[14px] lg:text-[15px] text-ink-500 max-w-[600px] text-center leading-relaxed px-6">
         Create your first assignment to start collecting and grading student
         submissions. You can set up rubrics, define marking criteria, and let
         AI assist with grading.
       </p>
       <Link
         href="/assignments/new"
-        className="mt-7 inline-flex items-center gap-2.5 h-14 px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-stroke-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
+        className="mt-5 lg:mt-7 inline-flex items-center gap-2.5 h-[60px] px-8 rounded-full bg-ink-900 text-white text-[16px] font-semibold btn-stroke-shadow-dark hover:bg-ink-800 active:scale-[0.99] transition-all"
       >
         <Plus className="w-[20px] h-[20px]" strokeWidth={2.4} />
         Create Your First Assignment

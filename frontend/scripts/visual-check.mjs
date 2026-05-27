@@ -47,7 +47,7 @@ for (const route of routes) {
     // brief settle for fonts / images
     await page.waitForTimeout(800);
     const file = `${outDir}/${route.name}-${vp.name}.png`;
-    await page.screenshot({ path: file, fullPage: true });
+    await page.screenshot({ path: file, fullPage: false });
     console.log(`✓ ${file}`);
     await page.close();
   }

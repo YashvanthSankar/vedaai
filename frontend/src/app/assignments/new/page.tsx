@@ -430,18 +430,20 @@ function Step1Card({
           ))}
         </div>
 
-        <div className="mt-5 flex items-center justify-between gap-4">
+        {/* On mobile: stack Add button above totals (full-width tap target, totals right-aligned).
+            On desktop: keep them side-by-side. */}
+        <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <button
             onClick={draft.addRow}
             disabled={draft.questionTypes.length >= QUESTION_TYPE_ORDER.length}
-            className="inline-flex items-center gap-2.5 text-[15px] font-medium text-ink-950 disabled:opacity-40"
+            className="inline-flex items-center gap-2.5 text-[15px] font-medium text-ink-950 disabled:opacity-40 self-start"
           >
             <span className="w-7 h-7 flex items-center justify-center rounded-full bg-ink-100">
               <Plus className="w-4 h-4 text-ink-950" strokeWidth={2} />
             </span>
             Add Question Type
           </button>
-          <div className="text-right text-[14px] text-ink-900 leading-relaxed">
+          <div className="flex sm:block items-center gap-6 sm:text-right text-[14px] text-ink-900 leading-relaxed">
             <div>
               <span className="font-bold">Total Questions</span>
               <span className="font-bold"> : {totalQuestions}</span>
