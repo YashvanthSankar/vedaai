@@ -59,10 +59,12 @@ export async function createAssignment(req: Request, res: Response) {
       } else if (req.file.mimetype.startsWith('text/')) {
         payload.sourceText = req.file.buffer.toString('utf-8');
       }
+      // Image uploads (jpeg/png) don't have extractable text — silently skip
     } catch (err) {
-      return res
-        .status(400)
-        .json({ error: `Could not parse file: ${(err as Error).message}` });
+      // Don't fail the whole request if a PDF can't be parsed
+      // (e.g. scanned/image-only PDFs, encrypted PDFs). The user's
+      // additionalInstructions still get used; reference text is just missing.
+      console.warn(`[create] PDF/text parse skipped: ${(err as Error).message}`);
     }
   }
 
