@@ -112,14 +112,23 @@ export default function NewAssignmentPage() {
 
   return (
     <div className="w-full max-w-[920px] mx-auto">
-      {/* Page header */}
-      <div className="flex items-start gap-3 mb-6 px-1">
-        <div className="w-3 h-3 mt-2 rounded-full bg-accent-green shrink-0" />
-        <div>
+      {/* Page header — mobile: large grey back button + bold title.
+          Desktop: green dot + title + subtitle. Header weight matches the rest
+          of the app (font-bold, not font-black). */}
+      <div className="flex items-center gap-5 mb-6 px-1">
+        <button
+          onClick={() => (step === 2 ? setStep(1) : router.back())}
+          className="lg:hidden shrink-0 w-14 h-14 rounded-full bg-ink-50 hover:bg-ink-100 active:scale-95 transition-all flex items-center justify-center text-ink-950"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-[22px] h-[22px]" strokeWidth={2} />
+        </button>
+        <div className="w-3 h-3 rounded-full bg-accent-green shrink-0 hidden lg:block mt-2" />
+        <div className="min-w-0">
           <h1 className="text-[22px] lg:text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
             Create Assignment
           </h1>
-          <p className="text-[14px] lg:text-[15px] text-ink-500 mt-1">
+          <p className="hidden lg:block text-[14px] lg:text-[15px] text-ink-500 mt-1">
             Set up a new assignment for your students.
           </p>
         </div>

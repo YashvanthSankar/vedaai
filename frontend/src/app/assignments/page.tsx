@@ -5,11 +5,13 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Plus,
   Search,
-  SlidersHorizontal,
+  Filter as FilterIcon,
   MoreVertical,
   Loader2,
   Check,
+  ArrowLeft,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import {
   listAssignments,
   deleteAssignment as deleteApi,
@@ -79,9 +81,10 @@ export default function AssignmentsPage() {
   const filteredItems =
     items?.filter((a) => filter === 'all' || a.status === filter) ?? [];
   const hasAny = !isLoading && items.length > 0;
-  // Treat "still loading" the same as "no items" so the canvas matches Figma's empty layout.
-  // Once items arrive, the filled state takes over.
-  const isEmpty = !hasAny && !search;
+  // Only show the empty-state illustration once we *know* there are no items.
+  // While loading, render the toolbar shell so the page doesn't flash the
+  // "Create Your First Assignment" CTA before swapping to the filled state.
+  const isEmpty = !isLoading && !hasAny && !search;
 
   return (
     <div className="w-full">
@@ -196,19 +199,27 @@ export default function AssignmentsPage() {
   );
 }
 
-function PageHeader({ hasAny }: { hasAny: boolean }) {
+function PageHeader({ hasAny: _hasAny }: { hasAny: boolean }) {
+  const router = useRouter();
   return (
-    <div className="flex items-start gap-3 px-1 mb-5">
-      <div className="w-3 h-3 mt-2 rounded-full bg-accent-green shrink-0" />
-      <div>
+    <div className="flex items-center gap-5 px-1 mb-7">
+      {/* Mobile-only 64px circular grey back button + heavy black title (Figma-exact). */}
+      <button
+        onClick={() => router.back()}
+        className="lg:hidden shrink-0 w-16 h-16 rounded-full bg-ink-50 hover:bg-ink-100 active:scale-95 transition-all flex items-center justify-center text-ink-950"
+        aria-label="Back"
+      >
+        <ArrowLeft className="w-[26px] h-[26px]" strokeWidth={2.4} />
+      </button>
+      <div className="w-3 h-3 rounded-full bg-accent-green shrink-0 hidden lg:block mt-2" />
+      <div className="min-w-0">
         <h1 className="text-[22px] lg:text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
           Assignments
         </h1>
-        <p className="text-[14px] lg:text-[15px] text-ink-500 mt-1">
+        <p className="hidden lg:block text-[14px] lg:text-[15px] text-ink-500 mt-1">
           Manage and create assignments for your classes.
         </p>
       </div>
-      {hasAny ? null : null}
     </div>
   );
 }
@@ -235,7 +246,7 @@ function Toolbar({
           onClick={onToggleFilter}
           className="flex items-center gap-2.5 h-12 px-3 -ml-1 text-ink-500 hover:text-ink-900 text-[15px] font-medium whitespace-nowrap"
         >
-          <SlidersHorizontal className="w-[18px] h-[18px]" strokeWidth={1.8} />
+          <FilterIcon className="w-[18px] h-[18px]" strokeWidth={1.8} />
           Filter By
           {filter !== 'all' && (
             <span className="ml-1 px-2 py-0.5 rounded-full bg-ink-100 text-ink-900 text-xs font-semibold">

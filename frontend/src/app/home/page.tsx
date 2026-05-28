@@ -14,6 +14,7 @@ import {
 import { listAssignments } from '@/lib/api';
 import { useProfile } from '@/lib/profile';
 import type { AssignmentSummary } from '@/lib/types';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function HomePage() {
   const profile = useProfile();
@@ -30,18 +31,10 @@ export default function HomePage() {
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="flex items-start gap-3 mb-6 px-1">
-        <div className="w-3 h-3 mt-2 rounded-full bg-accent-green shrink-0" />
-        <div className="min-w-0">
-          <h1 className="text-[22px] lg:text-[28px] font-bold tracking-tight text-ink-950 leading-tight">
-            Welcome back{profile?.teacherName ? `, ${profile.teacherName}` : ''}
-          </h1>
-          <p className="text-[14px] lg:text-[15px] text-ink-500 mt-1">
-            Here&apos;s what&apos;s happening with your classes today.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={`Welcome back${profile?.teacherName ? `, ${profile.teacherName}` : ''}`}
+        subtitle="Here's what's happening with your classes today."
+      />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-5 lg:mb-6">

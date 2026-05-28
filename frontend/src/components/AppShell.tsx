@@ -16,6 +16,10 @@ import {
   Menu,
   X as XIcon,
   Pencil,
+  Calendar,
+  FilePlus2,
+  Sparkles,
+  Plus,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/cn';
@@ -35,9 +39,9 @@ type NavItem = {
 const NAV: NavItem[] = [
   { href: '/home', label: 'Home', icon: LayoutGrid },
   { href: '/groups', label: 'My Groups', icon: IdCard },
-  { href: '/assignments', label: 'Assignments', icon: FileText, countKey: 'assignments' },
-  { href: '/toolkit', label: "AI Teacher's Toolkit", icon: BookOpen },
-  { href: '/library', label: 'My Library', icon: PieChart, countKey: 'library' },
+  { href: '/assignments', label: 'Assignments', icon: Calendar, countKey: 'assignments' },
+  { href: '/toolkit', label: "AI Teacher's Toolkit", icon: Sparkles },
+  { href: '/library', label: 'My Library', icon: FilePlus2, countKey: 'library' },
 ];
 
 /** Resolve the primary CTA + breadcrumb based on current path. */
@@ -115,12 +119,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </Link>
 
-          {/* Dynamic CTA — black pill with ORANGE GRADIENT stroke (same gradient as the Figma logo).
-              Outer wrapper holds the gradient; a 3px transparent inset creates the dark pill inside. */}
+          {/* Dynamic CTA — black pill with ORANGE GRADIENT stroke. Interactive:
+              - Hover: gradient ring brightens, soft glow under the pill, sparkles wiggle
+              - Active: subtle press-down scale
+              - Sparkles animate continuously on hover via group-hover. */}
           <div className="px-5 pb-2">
             <Link
               href={cta.href}
-              className="block w-full rounded-full active:scale-[0.99] transition-all btn-shadow-dark"
+              className="group block w-full rounded-full transition-all duration-200 btn-shadow-dark hover:scale-[1.015] active:scale-[0.98] hover:shadow-[0_10px_30px_-6px_rgba(196,70,31,0.45)]"
               style={{
                 padding: '3px',
                 backgroundImage:
@@ -129,18 +135,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               aria-label={cta.label}
             >
               <span
-                className="flex items-center justify-center gap-3 w-full h-[58px] rounded-full text-white text-[17px] font-extrabold"
+                className="flex items-center justify-center gap-3 w-full h-[58px] rounded-full text-white text-[17px] font-extrabold transition-colors group-hover:bg-[#222]"
                 style={{
                   backgroundColor: '#181818',
-                  // 3px white halo between the gradient ring and the dark pill
                   boxShadow: 'inset 0 0 0 3px #FFFFFF',
                 }}
               >
                 <span
                   className="flex items-center justify-center gap-3 w-full h-full rounded-full"
-                  style={{ backgroundColor: '#181818' }}
+                  style={{ backgroundColor: 'inherit' }}
                 >
-                  <SparklesFilled size={20} className="text-white" />
+                  <span className="inline-block group-hover:animate-cta-sparkle">
+                    <SparklesFilled size={20} className="text-white" />
+                  </span>
                   {cta.label}
                 </span>
               </span>
@@ -264,38 +271,88 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Page content */}
           <main className="flex-1 min-h-0">{children}</main>
         </div>
+
       </div>
 
-      {/* Mobile layout: bottom tab bar */}
-      <div className="lg:hidden flex flex-col min-h-screen pb-[148px]">
-        <header className="sticky top-4 z-20 floating-card rounded-[24px] mx-4 mt-4 h-16 px-4 flex items-center gap-2.5">
+      {/* Shared bottom fade-blur band — works for both desktop and mobile.
+          Two stacked layers create a progressively-stronger blur near the
+          bottom: a faint outer layer covers the top of the band with light
+          blur, an inner layer near the bottom adds heavier blur. Both
+          layers are masked so the effect smoothly fades from transparent
+          (top edge) to opaque (bottom edge) and the page canvas color is
+          tinted in via a soft gradient. */}
+      <div className="fixed bottom-0 left-0 right-0 z-10 pointer-events-none" aria-hidden>
+        {/* Outer light blur — covers a tall band so distant content softens early */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[180px]"
+          style={{
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 70%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 70%)',
+          }}
+        />
+        {/* Inner stronger blur — concentrated near the bottom edge */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[120px]"
+          style={{
+            backdropFilter: 'blur(20px) saturate(160%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 55%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 55%)',
+          }}
+        />
+        {/* Color tint — fades the page canvas in so the content visually
+            dissolves into the background rather than ending sharply. */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-[160px]"
+          style={{
+            background:
+              'linear-gradient(to top, var(--canvas) 0%, color-mix(in srgb, var(--canvas) 60%, transparent) 50%, transparent 100%)',
+          }}
+        />
+      </div>
+
+      {/* Mobile layout: bottom tab bar.
+          pb-24 (96px) reserves room for the bar (h-72 + 20px gutter = 92px) but
+          lets content extend INTO the bottom fade-blur band so the band has
+          something to actually blur. */}
+      <div className="lg:hidden flex flex-col min-h-screen pb-24">
+        {/* Mobile topbar — Figma reference:
+            - Floating white card, generous rounded corners (~28px)
+            - Logo + wordmark on the left
+            - Bell sits on a light-grey circular background with the orange dot badge
+            - Avatar circle, hamburger as a plain icon
+            - Generous internal padding */}
+        <header className="sticky top-4 z-20 floating-card rounded-[22px] mx-4 mt-4 h-[68px] pl-4 pr-3 flex items-center gap-3">
           <Link href="/home" className="flex items-center gap-2.5" aria-label="VedaAI Home">
-            <Logo size={32} />
-            <Wordmark className="text-[18px]" />
+            <Logo size={34} />
+            <Wordmark className="text-[20px]" />
           </Link>
           <div className="flex-1" />
-          <button className="relative w-10 h-10 rounded-full flex items-center justify-center text-ink-900" aria-label="Notifications">
+          <button
+            className="relative w-11 h-11 rounded-full bg-ink-50 flex items-center justify-center text-ink-900 active:scale-95 transition-transform"
+            aria-label="Notifications"
+          >
             <Bell className="w-5 h-5" strokeWidth={1.8} />
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-500 border border-white" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-brand-500 ring-2 ring-white" />
           </button>
-          {/* Avatar — Figma mobile topbar sits between the bell and the hamburger.
-              Tapping opens the same profile edit modal as desktop. */}
           <button
             onClick={() => setProfileModalOpen(true)}
-            className="w-9 h-9 rounded-full overflow-hidden ring-1 ring-ink-150 active:scale-95 transition-transform"
+            className="w-11 h-11 rounded-full overflow-hidden active:scale-95 transition-transform"
             aria-label="Edit profile"
           >
-            <PortraitAvatar size={36} />
+            <PortraitAvatar size={44} />
           </button>
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-ink-950 hover:bg-ink-50"
+            className="w-10 h-10 flex items-center justify-center text-ink-950 active:scale-95 transition-transform"
             aria-label="Menu"
           >
-            <Menu className="w-6 h-6" strokeWidth={2} />
+            <Menu className="w-[26px] h-[26px]" strokeWidth={2} />
           </button>
         </header>
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 px-4 pt-6">{children}</main>
         <MobileTabBar pathname={pathname} />
       </div>
 
@@ -330,25 +387,26 @@ function MobileTabBar({ pathname }: { pathname: string }) {
   // — Active: icon is FILLED (not outline) + larger + bold label
   // — Inactive: icon outline, muted text
   // — Floating "+" FAB to the right, partially overlapping the bar
-  const items: { href: string; label: string; outline: typeof LayoutGrid; filled: typeof LayoutGrid }[] = [
-    { href: '/home', label: 'Home', outline: LayoutGrid, filled: LayoutGrid },
-    { href: '/assignments', label: 'Assignments', outline: FileText, filled: FileText },
-    { href: '/library', label: 'Library', outline: PieChart, filled: PieChart },
-    { href: '/toolkit', label: 'AI Toolkit', outline: BookOpen, filled: BookOpen },
+  const items: { href: string; label: string; icon: typeof LayoutGrid }[] = [
+    { href: '/home', label: 'Home', icon: LayoutGrid },
+    { href: '/assignments', label: 'Assignments', icon: Calendar },
+    { href: '/library', label: 'Library', icon: FilePlus2 },
+    { href: '/toolkit', label: 'AI Toolkit', icon: Sparkles },
   ];
   return (
     <>
       {/* Mobile bottom bar — Figma exact:
-          Full-width minus gutter, h-72, radius 24px, items distributed evenly.
-          No top highlight gradient; just a flat dark pill with a soft drop shadow underneath. */}
+          Wide dark pill with softly rounded corners (~22px), h-72.
+          Active item shows a filled icon + bold white label; inactive items
+          fade to muted white. Flat dark pill with a soft drop shadow underneath. */}
       <nav
-        className="fixed bottom-5 left-4 right-4 z-40 h-[80px] bg-ink-900 rounded-[32px] flex items-center justify-around px-4"
+        className="fixed bottom-5 left-4 right-4 z-40 h-[72px] bg-ink-900 rounded-[22px] flex items-center justify-around px-3"
         style={{
           boxShadow: '0 12px 28px rgba(20, 20, 30, 0.22), 0 4px 8px rgba(20, 20, 30, 0.10)',
         }}
       >
         {items.map((item) => {
-          const Icon = item.outline;
+          const Icon = item.icon;
           const active =
             item.href === '/home'
               ? pathname === '/home' || pathname === '/'
@@ -359,19 +417,19 @@ function MobileTabBar({ pathname }: { pathname: string }) {
               href={item.href}
               className={cn(
                 'flex flex-col items-center justify-center gap-1 px-2 py-1 min-w-[64px]',
-                active ? 'text-white' : 'text-white/55 hover:text-white/85'
+                active ? 'text-white' : 'text-white/50 hover:text-white/80'
               )}
               aria-label={item.label}
             >
               <Icon
-                className={cn(active ? 'w-[30px] h-[30px]' : 'w-[24px] h-[24px]')}
-                strokeWidth={active ? 2.4 : 1.8}
+                className={cn(active ? 'w-[26px] h-[26px]' : 'w-[22px] h-[22px]')}
+                strokeWidth={active ? 2.2 : 1.8}
                 fill={active ? 'currentColor' : 'none'}
               />
               <span
                 className={cn(
                   'leading-none whitespace-nowrap',
-                  active ? 'text-[13px] font-bold' : 'text-[12px] font-medium'
+                  active ? 'text-[12px] font-bold' : 'text-[11px] font-medium'
                 )}
               >
                 {item.label}
@@ -380,20 +438,22 @@ function MobileTabBar({ pathname }: { pathname: string }) {
           );
         })}
       </nav>
-      {/* Floating "+" FAB — only on routes outside /assignments, since the assignments
-          page already renders its own inline + floating create CTAs (avoids the Figma
-          mobile collision where FAB overlapped the empty-state CTA). */}
-      {!pathname.startsWith('/assignments') && (
+      {/* Floating "+" FAB — Figma reference:
+          - White circle, sits directly above the bottom bar, horizontally centered-right
+          - Bright orange "+" inside (brand-500), medium weight
+          - Strong backdrop-blur halo behind so the content it overlaps blurs through
+          - Hidden only on /assignments/new (already on the create page). */}
+      {!pathname.startsWith('/assignments/new') && (
         <Link
           href="/assignments/new"
-          className="fixed right-4 z-50 w-14 h-14 rounded-full bg-white flex items-center justify-center active:scale-95 transition-transform"
+          className="fixed right-5 z-50 active:scale-95 transition-transform w-14 h-14 rounded-full bg-white flex items-center justify-center"
           style={{
-            bottom: '116px',
-            boxShadow: '0 8px 20px rgba(20, 20, 30, 0.18), 0 2px 4px rgba(20, 20, 30, 0.10)',
+            bottom: '108px',
+            boxShadow: '0 10px 24px rgba(20, 20, 30, 0.18), 0 2px 6px rgba(20, 20, 30, 0.10)',
           }}
           aria-label="Create Assignment"
         >
-          <span className="text-brand-500 text-[36px] leading-none font-light" style={{ marginTop: '-3px' }}>+</span>
+          <Plus className="w-[28px] h-[28px] text-brand-500" strokeWidth={2.2} />
         </Link>
       )}
     </>
