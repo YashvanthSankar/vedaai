@@ -325,10 +325,10 @@ function AssignmentCard({
   return (
     <Link
       href={`/assignments/${a._id}`}
-      className="block bg-white rounded-2xl shadow-card p-5 lg:p-8 min-h-[160px] lg:min-h-[200px] relative hover:shadow-floating transition-shadow"
+      className="block bg-white rounded-2xl shadow-card p-5 lg:p-7 min-h-[160px] lg:min-h-[180px] relative hover:shadow-floating transition-shadow"
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="text-[19px] lg:text-[26px] font-black text-ink-950 leading-tight underline decoration-[1.5px] underline-offset-[7px] decoration-ink-300 truncate max-w-[calc(100%-2rem)]">
+        <h3 className="text-[18px] lg:text-[22px] font-extrabold text-ink-950 leading-snug underline decoration-[1.5px] underline-offset-[6px] decoration-ink-300 line-clamp-2 pr-1">
           {a.title}
         </h3>
         <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
