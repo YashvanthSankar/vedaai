@@ -13,6 +13,7 @@ import { useGenerationStream } from '@/lib/ws';
 import type { Assignment, GeneratedPaper } from '@/lib/types';
 import { PaperView } from '@/components/PaperView';
 import { SparklesFilled } from '@/components/Brand';
+import { cn } from '@/lib/cn';
 
 export default function AssignmentDetailPage() {
   const params = useParams<{ id: string }>();
@@ -141,96 +142,100 @@ function GeneratingView({
   message: string;
   title: string;
 }) {
-  // Friendly rotating status copy so the wait feels active even if the
-  // backend hasn't streamed a new message yet.
-  const tips = [
-    'Analysing your topic and source material…',
-    'Selecting question types and difficulty balance…',
-    'Drafting questions across all sections…',
-    'Calibrating marks and time allocation…',
-    'Polishing language and formatting…',
+  // Subtle, on-brand status copy. Phrased like a teacher's prep checklist,
+  // not "the AI is thinking" — keeps the tone calm and intentional.
+  const stages = [
+    'Reading your source material',
+    'Drafting the question set',
+    'Balancing marks and difficulty',
+    'Finishing touches',
   ];
-  const [tipIdx, setTipIdx] = useState(0);
+  const [stageIdx, setStageIdx] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setTipIdx((i) => (i + 1) % tips.length), 2800);
+    const t = setInterval(
+      () => setStageIdx((i) => (i + 1) % stages.length),
+      3200
+    );
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const clamped = Math.max(5, Math.min(100, progress));
+  const clamped = Math.max(4, Math.min(100, progress));
   return (
-    <div className="max-w-xl mx-auto py-16 lg:py-24 text-center">
-      {/* Animated icon stack — orbiting halo + pulsing tile + floating sparkles */}
-      <div className="relative w-32 h-32 mx-auto mb-8">
-        {/* Outer orbit ring */}
-        <span
-          className="absolute inset-0 rounded-full border-2 border-brand-500/30 animate-[spin_3s_linear_infinite]"
-          style={{ borderTopColor: 'rgba(239,106,26,0.9)', borderRightColor: 'rgba(239,106,26,0.6)' }}
-        />
-        {/* Inner soft glow */}
-        <span className="absolute inset-3 rounded-full bg-gradient-to-br from-brand-500/20 to-brand-500/5 animate-pulse" />
-        {/* Center tile with sparkles */}
-        <span className="absolute inset-6 rounded-2xl bg-ink-950 flex items-center justify-center shadow-[0_8px_24px_rgba(239,106,26,0.35)]">
-          <span className="inline-block animate-cta-sparkle">
-            <SparklesFilled size={32} className="text-white" />
-          </span>
-        </span>
-        {/* Floating mini sparkles around the tile */}
-        <span className="absolute -top-1 right-2 text-brand-500 animate-[float-sparkle_2.4s_ease-in-out_infinite]">
-          <SparklesFilled size={14} />
-        </span>
-        <span
-          className="absolute bottom-0 -left-1 text-brand-400 animate-[float-sparkle_2.6s_ease-in-out_infinite_0.6s]"
-        >
-          <SparklesFilled size={10} />
-        </span>
-        <span
-          className="absolute top-3 -right-3 text-brand-300 animate-[float-sparkle_3.0s_ease-in-out_infinite_1.2s]"
-        >
-          <SparklesFilled size={8} />
+    <div className="max-w-md mx-auto py-16 lg:py-24 text-center px-4">
+      {/* Single sparkle mark — pulses gently. No orbits, no glowing rings.
+          Matches the brand sparkle used in the sidebar CTA. */}
+      <div className="relative inline-flex items-center justify-center mb-7">
+        <span className="absolute inset-0 rounded-full bg-brand-500/10 animate-[brand-pulse_2.4s_ease-in-out_infinite]" />
+        <span className="relative w-12 h-12 rounded-full bg-ink-950 flex items-center justify-center">
+          <SparklesFilled size={20} className="text-white" />
         </span>
       </div>
 
-      <h1 className="text-[24px] lg:text-[28px] font-bold tracking-tight text-ink-950 mb-2">
-        Generating your paper
+      <h1 className="text-[22px] lg:text-[26px] font-bold tracking-tight text-ink-950 leading-tight">
+        Preparing your paper
       </h1>
-      <p className="text-[15px] text-ink-700 mb-1 font-semibold">{title}</p>
+      {title ? (
+        <p className="mt-1.5 text-[14px] text-ink-500 truncate">{title}</p>
+      ) : null}
 
-      {/* Rotating tip — fades through suggestions while waiting */}
-      <div className="h-6 mb-6">
-        <p
-          key={tipIdx}
-          className="text-[13px] text-ink-500 animate-[fade-up_400ms_ease-out]"
-        >
-          {message || tips[tipIdx]}
-        </p>
+      {/* Stage list — current item bolded with a small filled dot;
+          the others sit in muted ink, matching the teacher-checklist tone. */}
+      <ul className="mt-8 space-y-2.5 text-left max-w-[280px] mx-auto">
+        {stages.map((s, i) => {
+          const done = i < stageIdx;
+          const current = i === stageIdx;
+          return (
+            <li
+              key={s}
+              className="flex items-center gap-3 text-[13.5px] leading-snug"
+            >
+              <span
+                className={cn(
+                  'inline-block w-1.5 h-1.5 rounded-full shrink-0 transition-colors',
+                  current
+                    ? 'bg-brand-500 animate-[brand-pulse_1.4s_ease-in-out_infinite]'
+                    : done
+                    ? 'bg-ink-400'
+                    : 'bg-ink-200'
+                )}
+              />
+              <span
+                className={cn(
+                  'transition-colors',
+                  current
+                    ? 'text-ink-950 font-semibold'
+                    : done
+                    ? 'text-ink-500'
+                    : 'text-ink-300'
+                )}
+              >
+                {s}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Hairline progress bar — very thin, brand-tinted fill, no sheen.
+          Live message (from the worker) sits subtly beneath. */}
+      <div className="mt-9 mx-auto max-w-[280px]">
+        <div className="h-[3px] bg-ink-100 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full bg-brand-500 transition-[width] duration-700 ease-out"
+            style={{ width: `${clamped}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-2.5 text-[11.5px] text-ink-400">
+          <span className="truncate pr-2">{message || stages[stageIdx]}</span>
+          <span className="tabular-nums font-semibold text-ink-500 shrink-0">
+            {clamped}%
+          </span>
+        </div>
       </div>
 
-      {/* Animated progress bar with a moving sheen */}
-      <div className="relative h-2 bg-ink-100 rounded-full overflow-hidden mx-auto max-w-sm">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-700 ease-out"
-          style={{
-            width: `${clamped}%`,
-            background:
-              'linear-gradient(90deg, #F4A66D 0%, #EF6A1A 50%, #C7461F 100%)',
-          }}
-        />
-        {/* Sheen sweep */}
-        <div
-          className="absolute inset-y-0 w-1/3 opacity-60 animate-[sheen_1.8s_linear_infinite] pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
-          }}
-        />
-      </div>
-      <div className="mt-3 text-[12px] font-semibold text-ink-700">
-        {clamped}%
-      </div>
-
-      <div className="mt-6 text-[13px] text-ink-400">
-        This usually takes 10–30 seconds. You can keep this tab open.
-      </div>
+      <p className="mt-10 text-[12px] text-ink-400">
+        Usually 10–30 seconds. Feel free to keep this tab open.
+      </p>
     </div>
   );
 }

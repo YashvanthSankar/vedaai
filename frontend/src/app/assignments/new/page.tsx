@@ -147,8 +147,10 @@ export default function NewAssignmentPage() {
         <Step2Card totalQuestions={totalQuestions} totalMarks={totalMarks} />
       )}
 
-      {/* Footer — h-14, 16px semibold, full pill, exact spacing */}
-      <div className="flex items-center justify-between mt-8 pb-12">
+      {/* Footer — h-14, 16px semibold, full pill, exact spacing.
+          Generous pb-32 keeps the Previous / Generate buttons above the
+          shared bottom fade-blur band so they aren't ghosted behind it. */}
+      <div className="flex items-center justify-between mt-8 pb-32">
         <button
           onClick={() => (step === 2 ? setStep(1) : router.back())}
           disabled={submitting}
